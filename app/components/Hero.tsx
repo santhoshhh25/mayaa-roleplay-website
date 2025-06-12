@@ -3,9 +3,21 @@
 import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { FaUsers, FaGamepad, FaDiscord, FaServer, FaSpinner } from 'react-icons/fa'
-import { Card, CardHeader, CardFooter } from '@/components/ui/card'
 import Image from 'next/image'
-import { Button } from '@/components/ui/button'
+
+// Simple UI components (inline to avoid import issues)
+const Card = ({ children, className = "" }: { children: React.ReactNode, className?: string }) => (
+  <div className={`bg-white/10 backdrop-blur-md rounded-lg shadow-lg border border-white/20 ${className}`}>{children}</div>
+)
+const CardHeader = ({ children }: { children: React.ReactNode }) => (
+  <div className="p-6">{children}</div>
+)
+const CardFooter = ({ children }: { children: React.ReactNode }) => (
+  <div className="p-6 pt-0">{children}</div>
+)
+const Button = ({ children, className = "", onClick }: { children: React.ReactNode, className?: string, onClick?: () => void }) => (
+  <button className={`px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${className}`} onClick={onClick}>{children}</button>
+)
 
 const Hero = () => {
   const [currentSlide, setCurrentSlide] = useState(0)
