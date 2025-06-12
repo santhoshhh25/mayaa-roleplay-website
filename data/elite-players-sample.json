@@ -1,0 +1,29 @@
+{
+  "players": [
+    {
+      "id": "steam:1100001234567890",
+      "name": "Raja Reddy",
+      "cash": 2850000,
+      "bank": 12750000,
+      "totalWealth": 15600000,
+      "isOnline": false,
+      "rank": "Diamond Elite",
+      "avatar": "https://i.pinimg.com/736x/77/4d/27/774d2791d7a6f7d98e2c711c272c4c6b.jpg",
+      "lastUpdated": "2024-01-15T10:30:00.000Z"
+    },
+    {
+      "id": "steam:1100001234567891",
+      "name": "Krishna Sharma", 
+      "cash": 1950000,
+      "bank": 11200000,
+      "totalWealth": 13150000,
+      "isOnline": true,
+      "rank": "Platinum King",
+      "avatar": "https://i.pinimg.com/736x/c6/07/69/c60769c88ab2549a9982e6090c3c46ed.jpg",
+      "lastUpdated": "2024-01-15T10:30:00.000Z"
+    }
+  ],
+  "lastSync": "2024-01-15T10:30:00.000Z",
+  "serverName": "MAYAAALOKAM Roleplay Server",
+  "totalPlayers": 15
+} 

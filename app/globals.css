@@ -1,0 +1,260 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Remove external font imports - fonts are optimized through Next.js layout.tsx */
+
+:root {
+  --font-inter: 'Inter', sans-serif;
+  --font-orbitron: 'Orbitron', monospace;
+  --font-roboto: 'Roboto', sans-serif;
+}
+
+/* Add font-display optimization for any remaining font loads */
+@font-face {
+  font-display: swap;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-inter);
+  background: #0a0b1a;
+  color: white;
+  overflow-x: hidden;
+}
+
+/* Hide scrollbar but keep functionality */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}
+
+/* Custom scrollbar for specific elements if needed */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  display: block;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #FFD700, #B8860B);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #FFEA00, #FFD700);
+}
+
+/* Text glow effect */
+.text-glow {
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.text-glow-strong {
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+}
+
+/* Button hover effects */
+.btn-glow {
+  transition: all 0.3s ease;
+}
+
+.btn-glow:hover {
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+  transform: translateY(-2px);
+}
+
+/* Background gradients */
+.bg-hero {
+  background: linear-gradient(135deg, rgba(10, 11, 26, 0.9) 0%, rgba(5, 6, 15, 0.95) 100%);
+}
+
+.bg-card {
+  background: rgba(16, 18, 41, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bg-card-hover {
+  background: rgba(26, 28, 51, 0.8);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+/* Loading animations - optimized for performance */
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+  }
+  50% {
+    opacity: 0.8;
+    box-shadow: 0 0 40px rgba(255, 215, 0, 0.6);
+  }
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+  will-change: opacity, box-shadow;
+}
+
+/* Optimized particle effects */
+.particles {
+  position: relative;
+  overflow: hidden;
+}
+
+.particles::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(2px 2px at 20px 30px, #fff, transparent),
+    radial-gradient(2px 2px at 40px 70px, rgba(255,215,0,0.8), transparent),
+    radial-gradient(1px 1px at 90px 40px, #fff, transparent),
+    radial-gradient(1px 1px at 130px 80px, rgba(255,215,0,0.6), transparent),
+    radial-gradient(2px 2px at 160px 30px, #fff, transparent);
+  background-repeat: repeat;
+  background-size: 200px 100px;
+  animation: float 15s linear infinite;
+  opacity: 0.1;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* Performance optimizations */
+.optimized-animation {
+  will-change: transform, opacity;
+  transform: translateZ(0); /* Force hardware acceleration */
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+  .mobile-padding {
+    padding: 1rem;
+  }
+  
+  .mobile-text-center {
+    text-align: center;
+  }
+}
+
+/* Form styles */
+.form-floating-label {
+  @apply relative;
+}
+
+.form-floating-label input:focus + label,
+.form-floating-label input:not(:placeholder-shown) + label {
+  @apply transform scale-75 -translate-y-6 text-primary;
+}
+
+.form-floating-label label {
+  @apply absolute left-3 top-3 text-gray-400 transition-all duration-300 pointer-events-none;
+}
+
+/* Discord button specific styles */
+.discord-btn {
+  background: linear-gradient(135deg, #5865F2 0%, #4752C4 100%);
+  transition: all 0.3s ease;
+}
+
+.discord-btn:hover {
+  background: linear-gradient(135deg, #4752C4 0%, #3C45A5 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(88, 101, 242, 0.3);
+}
+
+/* Server status indicator */
+.status-online {
+  @apply bg-green-400 shadow-[0_0_10px_theme(colors.green.400)];
+  animation: pulse 2s infinite;
+}
+
+.status-offline {
+  @apply bg-red-400 shadow-[0_0_10px_theme(colors.red.400)];
+}
+
+/* Glass morphism effects */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Gradient text - optimized */
+.gradient-text {
+  background: linear-gradient(135deg, #FFD700 0%, #FFEA00 50%, #B8860B 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 200% 200%;
+  animation: gradient-x 3s ease infinite;
+  will-change: background-position;
+}
+
+/* Loading spinner */
+.spinner {
+  @apply animate-spin rounded-full border-4 border-gray-300 border-t-primary;
+}
+
+/* Custom utilities */
+.text-shadow {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.text-shadow-lg {
+  text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.7);
+}
+
+/* Hover grow effect - optimized */
+.hover-grow {
+  transition: transform 0.3s ease;
+  will-change: transform;
+}
+
+.hover-grow:hover {
+  transform: scale(1.05);
+}
+
+/* Fade in animation classes - optimized */
+.fade-in {
+  animation: fadeIn 0.6s ease-out;
+  will-change: opacity;
+}
+
+.slide-up {
+  animation: slideUp 0.8s ease-out;
+  will-change: transform, opacity;
+}
+
+.scale-in {
+  animation: scaleIn 0.5s ease-out;
+  will-change: transform, opacity;
+} 

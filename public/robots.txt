@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+# Performance-optimized crawling
+Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://mayaaalokam.com/sitemap.xml
+
+# Block unnecessary files for better crawl budget
+Disallow: /_next/
+Disallow: /api/
+Disallow: /*.json$
+Disallow: /*.js$
+Disallow: /*.css$ 

@@ -1,0 +1,54 @@
+services:
+  - type: web
+    name: mayaaalokam-discord-bot
+    env: node
+    plan: free
+    buildCommand: npm install && npm run bot:build
+    startCommand: npm run bot:start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      # Add all your environment variables here
+      # Discord Bot Configuration
+      - key: BOT_TOKEN
+        sync: false
+      - key: GUILD_ID
+        sync: false
+      - key: FORM_CHANNEL_ID
+        sync: false
+      - key: RESPONSE_CHANNEL_ID
+        sync: false
+      - key: ALLOWED_ROLE_ID
+        sync: false
+      - key: WHITELISTED_ROLE_ID
+        sync: false
+      # Discord OAuth Configuration
+      - key: NEXT_PUBLIC_DISCORD_CLIENT_ID
+        sync: false
+      - key: DISCORD_CLIENT_SECRET
+        sync: false
+      - key: NEXTAUTH_URL
+        sync: false
+      - key: NEXTAUTH_SECRET
+        sync: false
+      # Supabase Configuration
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      # Keep-Alive Configuration
+      - key: RENDER_SERVICE_URL
+        sync: false
+      - key: ALERT_WEBHOOK_URL
+        sync: false
+      # FiveM Sync Configuration
+      - key: FIVEM_SYNC_API_KEY
+        sync: false
+      # Optional: Custom branding
+      - key: MAYAALOKAM_LOGO_URL
+        sync: false 
