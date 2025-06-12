@@ -48,7 +48,7 @@ jobs:
         fetch-depth: 0
       
     - name: Deploy to Railway
-      uses: railwayapp/github-action@v3.1.0
+      uses: railwayapp/github-action@v3
       with:
         railway_token: ${{ secrets.RAILWAY_TOKEN }}
         service_id: ${{ secrets.RAILWAY_SERVICE_ID }}
