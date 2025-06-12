@@ -47,23 +47,11 @@ jobs:
       with:
         fetch-depth: 0
       
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-        
-    - name: Install Railway CLI
-      run: npm install -g @railway/cli
-      
     - name: Deploy to Railway
-      run: |
-        echo "Deploying to Railway..."
-        railway login --token $RAILWAY_TOKEN
-        railway deploy --service $RAILWAY_SERVICE_ID
-      env:
-        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_SERVICE_ID }}
+      uses: railwayapp/github-action@v3.1.0
+      with:
+        railway_token: ${{ secrets.RAILWAY_TOKEN }}
+        service_id: ${{ secrets.RAILWAY_SERVICE_ID }}
 
   notify:
     needs: [test, deploy]
