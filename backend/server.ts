@@ -8,11 +8,17 @@ import { KeepAliveManager } from './keep-alive'
 dotenv.config()
 
 const app = express()
-const PORT = process.env.BACKEND_PORT || 3001
+const PORT = process.env.PORT || process.env.BACKEND_PORT || 3001
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001', process.env.NEXT_PUBLIC_API_URL || ''].filter(url => url !== ''),
+  origin: [
+    'http://localhost:3000', 
+    'http://localhost:3001', 
+    process.env.NEXT_PUBLIC_API_URL || '',
+    process.env.RAILWAY_PUBLIC_DOMAIN || '',
+    process.env.RAILWAY_STATIC_URL || '',
+  ].filter(url => url !== ''),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']

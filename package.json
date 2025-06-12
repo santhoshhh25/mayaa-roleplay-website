@@ -5,16 +5,22 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:github-pages": "next build",
     "start": "next start",
     "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "type-check": "tsc --noEmit",
+    "test": "npm run lint && npm run type-check && npm run build && npm run bot:build",
     "bot:dev": "tsx backend/server.ts",
     "bot:build": "tsc backend/server.ts --outDir backend/dist --target es2020 --moduleResolution node --allowSyntheticDefaultImports --esModuleInterop",
     "bot:start": "node backend/dist/server.js",
     "post-duty-panel": "node backend/post-duty-panel-separate.js",
     "remove-duty-panel": "node backend/remove-duty-panel.js",
     "dev:all": "concurrently \"npm run dev\" \"npm run bot:dev\"",
-    "start:all": "concurrently \"npm start\" \"npm run bot:start\""
+    "start:all": "concurrently \"npm start\" \"npm run bot:start\"",
+    "railway:start": "npm run start:all",
+    "ci": "npm run test",
+    "deploy": "railway deploy",
+    "logs": "railway logs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.0",
