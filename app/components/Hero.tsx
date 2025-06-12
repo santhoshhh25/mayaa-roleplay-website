@@ -3,9 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { FaUsers, FaGamepad, FaDiscord, FaServer, FaSpinner } from 'react-icons/fa'
-import { Card, CardHeader, CardFooter } from '@/components/ui/card'
 import Image from 'next/image'
-import { Button } from '@/components/ui/button'
 
 const Hero = () => {
   const [currentSlide, setCurrentSlide] = useState(0)
@@ -15,7 +13,7 @@ const Hero = () => {
   const [serverStatus, setServerStatus] = useState({ online: false, players: 0, maxPlayers: 0 });
   const [isLoading, setIsLoading] = useState(true);
   
-  // Background images for slideshow - all 19 wallpaper images
+  // Background images for slideshow - all available wallpaper images
   const backgroundImages = [
     '/images/slideshow/wallhaven-1k8r79.png',
     '/images/slideshow/wallhaven-2koyzy.jpeg',

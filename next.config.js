@@ -2,6 +2,8 @@
 const nextConfig = {
   output: 'export',
   trailingSlash: true,
+  basePath: '/mayaa-roleplay-website',
+  assetPrefix: '/mayaa-roleplay-website',
   images: {
     unoptimized: true,
     domains: [
