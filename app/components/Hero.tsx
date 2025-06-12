@@ -311,10 +311,7 @@ const Hero = () => {
         {backgroundImages.map((image, index) => (
           <motion.div
             key={index}
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{
-              backgroundImage: `url(${image})`,
-            }}
+            className="absolute inset-0"
             initial={{ opacity: 0, scale: 1.1 }}
             animate={{ 
               opacity: index === currentSlide && !isTransitioning ? 1 : 0,
@@ -324,7 +321,16 @@ const Hero = () => {
               opacity: { duration: 1.6, ease: "easeInOut" },
               scale: { duration: 8, ease: "easeOut" }
             }}
-          />
+          >
+            <Image
+              src={image}
+              alt={`Background slideshow image ${index + 1}`}
+              fill
+              className="object-cover"
+              priority={index === 0}
+              unoptimized
+            />
+          </motion.div>
         ))}
         
         {/* Dark overlay for better text readability */}
