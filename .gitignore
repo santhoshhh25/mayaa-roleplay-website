@@ -36,6 +36,9 @@ next-env.d.ts
 # Backend dist
 backend/dist/
 
+# API backup (for GitHub Pages deployment)
+api-backup/
+
 # IDE
 .vscode/
 .idea/
