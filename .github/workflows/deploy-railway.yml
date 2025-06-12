@@ -14,6 +14,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
       
     - name: Setup Node.js
       uses: actions/setup-node@v4
@@ -42,11 +44,20 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
-    - name: Use Railway CLI
-      uses: railway-app/cli@v3
       with:
-        command: deploy
+        fetch-depth: 0
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install Railway CLI
+      run: npm install -g @railway/cli
+      
+    - name: Deploy to Railway
+      run: railway deploy
       env:
         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
