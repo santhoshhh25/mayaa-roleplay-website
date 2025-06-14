@@ -1,8 +1,8 @@
 import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
-import WhitelistBot, { WhitelistApplication } from './discord-bot'
-import { KeepAliveManager } from './keep-alive'
+import WhitelistBot, { WhitelistApplication } from './discord-bot.js'
+import { KeepAliveManager } from './keep-alive.js'
 
 // Load environment variables
 dotenv.config()
