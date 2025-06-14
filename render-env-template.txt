@@ -44,11 +44,22 @@ NEXTAUTH_URL=https://mayaaalokam-frontend-[your-hash].onrender.com
 NEXTAUTH_SECRET=generate_random_32_character_string
 
 # ====================================
+# Discord Webhooks Configuration
+# ====================================
+ALERT_WEBHOOK_URL=https://discord.com/api/webhooks/1234567890/your-webhook-token-here
+WHITELIST_WEBHOOK_URL=https://discord.com/api/webhooks/1234567890/your-webhook-token-here
+MONITORING_WEBHOOK_URL=https://discord.com/api/webhooks/1234567890/your-webhook-token-here
+
+# ====================================
+# FiveM Integration Configuration
+# ====================================
+FIVEM_SYNC_API_KEY=your-super-secret-fivem-api-key-32-chars
+FIVEM_SERVER_NAME=MAYAAALOKAM Roleplay Server
+
+# ====================================
 # Optional Configuration
 # ====================================
 DUTY_LOGS_AUTHORIZED_ROLES=role1_id,role2_id,role3_id
-ALERT_WEBHOOK_URL=your_discord_webhook_url_for_alerts
-FIVEM_SYNC_API_KEY=your_secure_api_key_here
 MAYAALOKAM_LOGO_URL=https://your-server-logo-url.com/logo.png
 
 # ====================================

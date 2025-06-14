@@ -105,4 +105,31 @@ WITH dept_ids AS (
 )
 INSERT INTO ranks (department_id, name, hierarchy_level)
 SELECT (SELECT mw_id FROM dept_ids), rank_name, level FROM mw_ranks
-ON CONFLICT (department_id, name) DO NOTHING; 
+ON CONFLICT (department_id, name) DO NOTHING;
+
+-- Elite Players Table for FiveM Sync
+CREATE TABLE IF NOT EXISTS elite_players (
+    id SERIAL PRIMARY KEY,
+    rank INTEGER NOT NULL,
+    identifier VARCHAR(255) NOT NULL,
+    character_name VARCHAR(255) NOT NULL,
+    bank_money BIGINT NOT NULL DEFAULT 0,
+    cash_money BIGINT NOT NULL DEFAULT 0,
+    total_money BIGINT NOT NULL DEFAULT 0,
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    sync_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Server Info Table for FiveM Server Status
+CREATE TABLE IF NOT EXISTS server_info (
+    id INTEGER PRIMARY KEY DEFAULT 1,
+    server_name VARCHAR(255) NOT NULL,
+    max_players INTEGER NOT NULL DEFAULT 64,
+    last_sync TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    sync_timestamp BIGINT NOT NULL DEFAULT 0
+);
+
+-- Create indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_elite_players_rank ON elite_players(rank);
+CREATE INDEX IF NOT EXISTS idx_elite_players_total_money ON elite_players(total_money);
+CREATE INDEX IF NOT EXISTS idx_elite_players_sync_timestamp ON elite_players(sync_timestamp); 
