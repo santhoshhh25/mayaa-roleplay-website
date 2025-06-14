@@ -1,0 +1,59 @@
+# Copy these environment variables to your Render services
+
+# ====================================
+# Discord Bot Configuration
+# ====================================
+BOT_TOKEN=your_discord_bot_token_here
+APPLICATION_GUILD_ID=your_discord_server_id_here
+DUTY_LOGS_GUILD_ID=your_discord_server_id_here
+FORM_CHANNEL_ID=your_channel_id_for_applications
+RESPONSE_CHANNEL_ID=your_channel_id_for_responses
+WHITELIST_CHANNEL_ID=your_whitelist_channel_id
+DUTY_LOGS_CHANNEL_ID=your_duty_logs_channel_id
+ALLOWED_ROLE_ID=your_staff_role_id_that_can_process_apps
+WHITELISTED_ROLE_ID=the_role_to_give_approved_users
+ADD_ROLE=the_role_to_give_approved_users
+GUILD_ID=your_discord_server_id_here
+
+# ====================================
+# Discord OAuth Configuration
+# ====================================
+NEXT_PUBLIC_DISCORD_CLIENT_ID=your_discord_app_client_id
+DISCORD_CLIENT_ID=your_discord_app_client_id
+DISCORD_CLIENT_SECRET=your_discord_app_client_secret
+
+# ====================================
+# Supabase Database Configuration
+# ====================================
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_public_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+
+# ====================================
+# Service URLs (UPDATE AFTER DEPLOYMENT)
+# ====================================
+NEXT_PUBLIC_API_URL=https://mayaaalokam-discord-bot-[your-hash].onrender.com
+DISCORD_REDIRECT_URI=https://mayaaalokam-discord-bot-[your-hash].onrender.com/api/discord/callback
+NEXT_PUBLIC_DISCORD_REDIRECT_URI=https://mayaaalokam-discord-bot-[your-hash].onrender.com/api/discord/callback
+RENDER_SERVICE_URL=https://mayaaalokam-discord-bot-[your-hash].onrender.com
+
+# ====================================
+# NextAuth Configuration (FRONTEND SERVICE ONLY)
+# ====================================
+NEXTAUTH_URL=https://mayaaalokam-frontend-[your-hash].onrender.com
+NEXTAUTH_SECRET=generate_random_32_character_string
+
+# ====================================
+# Optional Configuration
+# ====================================
+DUTY_LOGS_AUTHORIZED_ROLES=role1_id,role2_id,role3_id
+ALERT_WEBHOOK_URL=your_discord_webhook_url_for_alerts
+FIVEM_SYNC_API_KEY=your_secure_api_key_here
+MAYAALOKAM_LOGO_URL=https://your-server-logo-url.com/logo.png
+
+# ====================================
+# Server Configuration
+# ====================================
+NODE_ENV=production
+PORT=3000
+BACKEND_PORT=3001 
