@@ -1,25 +1,42 @@
 # Dependencies
 node_modules/
+/.pnp
+.pnp.js
+
+# Testing
+/coverage
+
+# Next.js
+/.next/
+/out/
+
+# Production
+/build
+
+# Misc
+.DS_Store
+*.pem
+
+# Debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Next.js
-.next/
-out/
-build/
-
-# Production
-dist/
-backend/dist/
-
-# Environment variables
+# Local env files
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env.railway
+.env*.local
+.env.production
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Backend build
+backend/dist/
+backend/*.js.map
 
 # Logs
 logs
@@ -30,20 +47,6 @@ pids
 *.pid
 *.seed
 *.pid.lock
-
-# Coverage directory used by tools like istanbul
-coverage/
-*.lcov
-
-# nyc test coverage
-.nyc_output
-
-# Dependency directories
-node_modules/
-jspm_packages/
-
-# TypeScript cache
-*.tsbuildinfo
 
 # Optional npm cache directory
 .npm
@@ -58,36 +61,18 @@ jspm_packages/
 .yarn-integrity
 
 # dotenv environment variables file
-.env
+.env.test
 
-# parcel-bundler cache (https://parceljs.org/)
-.cache
-.parcel-cache
-
-# Railway
-.railway/
-
-# IDE
+# IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# OS
-.DS_Store
+# OS generated files
 Thumbs.db
+ehthumbs.db
 
 # Temporary files
-*.tmp
-*.temp
-
-# Database
-*.sqlite
-*.db
-
-# Discord Bot
-bot-data/
-
-# Backup files
-*.backup
-*.bak 
+tmp/
+temp/ 

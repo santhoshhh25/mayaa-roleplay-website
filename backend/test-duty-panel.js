@@ -1,4 +1,4 @@
-// Test script to post the duty log panel to a Discord channel
+// Test script to post the NEW PERSONALIZED duty log panel to a Discord channel
 // Usage: node backend/test-duty-panel.js <channel_id>
 
 const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js')
@@ -30,39 +30,66 @@ async function postDutyPanel(channelId) {
       return false
     }
 
-    // Create duty log panel embed
+    // Create NEW PERSONALIZED duty log panel embed
     const embed = new EmbedBuilder()
       .setColor(0x0099FF)
       .setAuthor({ 
         name: 'MAYAAALOKAM ROLEPLAY COMMUNITY', 
         iconURL: process.env.MAYAALOKAM_LOGO_URL || 'http://localhost:3000/images/mayaalokam-logo.png'
       })
-      .setTitle('🕐 DUTY LOG SYSTEM')
+      .setTitle('🕐 PERSONAL DUTY LOG SYSTEM')
       .setDescription(`
-**Welcome to the Duty Log Management System**
+**🔥 NEW: Personalized Duty Experience!**
 
-Use the buttons below to manage your duty status:
-• **Clock In** - Start your duty shift
-• **Clock Out** - End your current shift
+Each user now gets their own private duty status - no more shared messages!
 
-View your detailed duty statistics and history on the web dashboard.
+• **Clock In** - Quick access with saved profile data
+• **Clock Out** - Instant with zero public messages  
+• **My Status** - Your personal duty information only
 
-**Available for:** PD, EMS, Mechanic, Merry weather personnel
+**Revolutionary Features:**
+✅ **ZERO public messages** in this channel
+✅ **Your status is private** to you only  
+✅ **Saved profiles** - no re-entering data
+✅ **Quick clock in/out** with stored information
+✅ **Professional responses** with rich embeds
+✅ **Edit profile** functionality anytime
+✅ **Promotion management** system ready
       `)
       .addFields([
         { 
-          name: '📋 Instructions', 
+          name: '🎯 How It Works', 
           value: `
-1️⃣ Click **Clock In** to start your shift
-2️⃣ Fill out the required character information
-3️⃣ Click **Clock Out** when ending your shift
-4️⃣ Visit the web dashboard for detailed statistics and history
+**First Time Users:** Click "Clock In" → Setup your profile once and done!
+**Existing Users:** Click "Clock In" → Instant access with your saved data
+**Everyone:** All your interactions are completely private!
           `.trim(),
           inline: false 
+        },
+        {
+          name: '🏢 Departments & Ranks Available',
+          value: `
+🚔 **Police Department** - 11 ranks (Cadet → Chief of Police)
+🚑 **Emergency Medical Services** - 8 ranks (EMT Basic → EMS Chief)  
+🔧 **Mechanic** - 7 ranks (Apprentice → Service Manager)
+🛡️ **Merry Weather** - 7 ranks (Recruit → Regional Director)
+          `.trim(),
+          inline: false
+        },
+        {
+          name: '⚡ What Changed',
+          value: `
+🚫 **NO MORE** public "You are now on duty" messages
+🔒 **PRIVATE** status responses only you see
+💾 **SAVED** character data for instant access
+🎨 **BEAUTIFUL** embedded status panels
+👤 **PERSONAL** duty experience for each user
+          `.trim(),
+          inline: false
         }
       ])
       .setFooter({ 
-        text: `MAYAAALOKAM RP • Duty Log System`, 
+        text: `MAYAAALOKAM RP • Personal Duty System v2.0 - Zero Public Messages!`, 
         iconURL: process.env.MAYAALOKAM_LOGO_URL || 'http://localhost:3000/images/mayaalokam-logo.png'
       })
       .setTimestamp()
@@ -79,7 +106,12 @@ View your detailed duty statistics and history on the web dashboard.
           .setCustomId('duty_clockout')
           .setLabel('Clock Out')
           .setStyle(ButtonStyle.Danger)
-          .setEmoji('🔴')
+          .setEmoji('🔴'),
+        new ButtonBuilder()
+          .setCustomId('duty_status')
+          .setLabel('My Status')
+          .setStyle(ButtonStyle.Primary)
+          .setEmoji('👤')
       )
 
     await channel.send({
@@ -87,7 +119,26 @@ View your detailed duty statistics and history on the web dashboard.
       components: [actionRow]
     })
 
-    console.log('📋 Posted duty log panel')
+    console.log('')
+    console.log('🎉 NEW PERSONALIZED DUTY PANEL POSTED SUCCESSFULLY!')
+    console.log('')
+    console.log('🔥 REVOLUTIONARY FEATURES NOW ACTIVE:')
+    console.log('✅ ZERO public messages in duty channel')
+    console.log('✅ Each user sees their own personalized status')
+    console.log('✅ Stored user profiles (no re-entering data)')
+    console.log('✅ Quick clock in/out with saved data')
+    console.log('✅ Professional embedded responses')
+    console.log('✅ Edit profile functionality')
+    console.log('✅ Promotion management system ready')
+    console.log('')
+    console.log('🎯 TEST IT NOW:')
+    console.log('  • Have someone click "Clock In"')
+    console.log('  • They will see ZERO public messages')
+    console.log('  • Only private personalized responses')
+    console.log('  • Data saved for future instant access')
+    console.log('')
+    console.log('🚀 The duty channel is now 100% clean with personal experiences!')
+    
     return true
 
   } catch (error) {

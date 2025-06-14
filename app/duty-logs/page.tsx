@@ -379,8 +379,10 @@ const DutyLogsPage = () => {
 
   const getDepartmentColor = (dept: string) => {
     switch (dept) {
-      case 'LSPD': return 'from-blue-500 to-blue-600'
+      case 'SASP': return 'from-blue-500 to-blue-600'
       case 'EMS': return 'from-green-500 to-green-600'
+      case 'Bennys Garage': return 'from-orange-500 to-orange-600'
+      case 'Merry Weather': return 'from-yellow-500 to-yellow-600'
       case 'Fire Department': return 'from-red-500 to-red-600'
       case 'DOJ': return 'from-purple-500 to-purple-600'
       default: return 'from-gray-500 to-gray-600'
@@ -867,10 +869,10 @@ const DutyLogsPage = () => {
                               className="w-full bg-dark border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-primary focus:outline-none"
                             >
                               <option value="">All Departments</option>
-                              <option value="PD">PD</option>
+                              <option value="SASP">SASP</option>
                               <option value="EMS">EMS</option>
-                              <option value="Mechanic">Mechanic</option>
-                              <option value="Merry weather">Merry weather</option>
+                              <option value="Bennys Garage">Bennys Garage</option>
+                              <option value="Merry Weather">Merry Weather</option>
                             </select>
                           </div>
                           

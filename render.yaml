@@ -1,4 +1,41 @@
 services:
+  # Frontend Web Service (Next.js)
+  - type: web
+    name: mayaaalokam-frontend
+    env: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      # Discord OAuth Configuration
+      - key: NEXT_PUBLIC_DISCORD_CLIENT_ID
+        sync: false
+      - key: DISCORD_CLIENT_SECRET
+        sync: false
+      - key: NEXTAUTH_URL
+        sync: false
+      - key: NEXTAUTH_SECRET
+        sync: false
+      # Supabase Configuration
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      # API URL
+      - key: NEXT_PUBLIC_API_URL
+        sync: false
+      # Optional: Custom branding
+      - key: MAYAALOKAM_LOGO_URL
+        sync: false
+
+  # Backend Service (Discord Bot)
   - type: web
     name: mayaaalokam-discord-bot
     env: node
@@ -11,28 +48,44 @@ services:
         value: production
       - key: PORT
         value: 3001
-      # Add all your environment variables here
+      - key: BACKEND_PORT
+        value: 3001
       # Discord Bot Configuration
       - key: BOT_TOKEN
         sync: false
-      - key: GUILD_ID
+      - key: APPLICATION_GUILD_ID
+        sync: false
+      - key: DUTY_LOGS_GUILD_ID
         sync: false
       - key: FORM_CHANNEL_ID
         sync: false
       - key: RESPONSE_CHANNEL_ID
         sync: false
+      - key: WHITELIST_CHANNEL_ID
+        sync: false
+      - key: DUTY_LOGS_CHANNEL_ID
+        sync: false
       - key: ALLOWED_ROLE_ID
         sync: false
       - key: WHITELISTED_ROLE_ID
         sync: false
+      - key: ADD_ROLE
+        sync: false
+      - key: DUTY_LOGS_AUTHORIZED_ROLES
+        sync: false
+      # Legacy support
+      - key: GUILD_ID
+        sync: false
       # Discord OAuth Configuration
       - key: NEXT_PUBLIC_DISCORD_CLIENT_ID
         sync: false
+      - key: DISCORD_CLIENT_ID
+        sync: false
       - key: DISCORD_CLIENT_SECRET
         sync: false
-      - key: NEXTAUTH_URL
+      - key: DISCORD_REDIRECT_URI
         sync: false
-      - key: NEXTAUTH_SECRET
+      - key: NEXT_PUBLIC_DISCORD_REDIRECT_URI
         sync: false
       # Supabase Configuration
       - key: NEXT_PUBLIC_SUPABASE_URL

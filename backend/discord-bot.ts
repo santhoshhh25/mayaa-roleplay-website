@@ -17,7 +17,7 @@ import {
   SlashCommandBuilder,
   StringSelectMenuBuilder
 } from 'discord.js'
-import { DutyLogsAPI, DutyLogData } from './duty-logs-api'
+import { DutyLogsAPI, DutyLogData, UserProfile, Department, Rank } from './duty-logs-api'
 
 
 interface WhitelistApplication {
@@ -95,18 +95,31 @@ class WhitelistBot {
       if (interaction.isButton()) {
         if (interaction.customId.startsWith('duty_')) {
           await this.handleDutyButtonInteraction(interaction)
+        } else if (interaction.customId === 'quick_clockin') {
+          await this.handleQuickClockIn(interaction)
+        } else if (interaction.customId === 'quick_clockout') {
+          await this.handleQuickClockOut(interaction)
+        } else if (interaction.customId === 'edit_profile') {
+          await this.handleEditProfile(interaction)
+        } else if (interaction.customId === 'refresh_status') {
+          await this.handlePersonalizedStatus(interaction)
         } else {
           await this.handleButtonInteraction(interaction)
         }
       } else if (interaction.isStringSelectMenu()) {
-        if (interaction.customId.startsWith('duty_department_select')) {
-          await this.handleDepartmentSelection(interaction)
-        } else if (interaction.customId.startsWith('duty_rank_select_')) {
-          await this.handleRankSelection(interaction)
+        if (interaction.customId.startsWith('department_select_')) {
+          await this.handleDepartmentSelectMenu(interaction)
+        } else if (interaction.customId.startsWith('rank_select_')) {
+          await this.handleRankSelectMenu(interaction)
         }
       } else if (interaction.isModalSubmit()) {
-        if (interaction.customId.startsWith('duty_final_modal|')) {
-          await this.handleDutyClockInModal(interaction)
+        // Legacy duty_final_modal disabled - all duty actions now use personalized panels
+        // if (interaction.customId.startsWith('duty_final_modal')) {
+        //   await this.handleDutyClockInModal(interaction)
+        // } else 
+        if (interaction.customId.startsWith('final_setup_')) {
+          await this.showFinalSetupSubmit(interaction)
+
         } else {
           await this.handleModalSubmit(interaction)
         }
@@ -130,26 +143,10 @@ class WhitelistBot {
 
   // Department and rank mappings
   private readonly departments = {
-    'PD': [
-      'Cadet', 'Solo Cadet', 'Officer', 'Officer 1C', 'Senior Officer', 
-      'Corporal', 'Corporal 1C', 'Sergeant', 'Head-Sergeant', 'Lieutenant', 
-      'ACP', 'Captain', 'Commander', 'Deputy Chief', 'Asst. Chief', 
-      'LSPD Chief', 'Trooper', 'SASP Chief', 'Detective'
-    ],
-    'Merry weather': [
-      'Recruit', 'Corporal', 'Sergeant', 'Lieutenant', 'Chief'
-    ],
-    'EMS': [
-      'EMT', 'EMT Advance', 'Doctor', 'Senior Doctor', 'Surgeon', 
-      'Medical Advisor', 'Assistant Director', 'Deputy Director', 'Chief Director'
-    ],
-    'Mechanic': [
-      'Apprentice Mechanic', 'Junior Mechanic', 'Mechanic', 'Skilled Mechanic', 
-      'Senior Mechanic', 'Lead Mechanic', 'Master Mechanic', 'Garage Supervisor', 
-      'Workshop Manager', 'Chief Engineer', 'Operations Captain', 'Mechanic Commander', 
-      'Deputy Director', 'Assistant Director', 'Head of Mechanics', 'Elite Mechanic', 
-      'Grandmaster Technician'
-    ]
+    'SASP': ['🚔', 'SASP'],
+    'Emergency Medical Services': ['🚑', 'EMS'], 
+    'Bennys Garage': ['🔧', 'BENNYS'],
+    'Merry Weather': ['🛡️', 'MW']
   }
 
   public async postDutyLogPanel(channelId?: string): Promise<boolean> {
@@ -161,31 +158,39 @@ class WhitelistBot {
         return false
       }
 
-      // Create duty log panel embed
+      // Create duty log panel embed (instructions for first-time users only)
       const embed = new EmbedBuilder()
         .setColor(0x0099FF)
         .setAuthor({ 
           name: 'MAYAAALOKAM ROLEPLAY COMMUNITY', 
           iconURL: process.env.MAYAALOKAM_LOGO_URL || 'http://localhost:3000/images/mayaalokam-logo.png'
         })
-        .setTitle('🕐 DUTY LOG SYSTEM')
+        .setTitle('🕐 PERSONAL DUTY LOG SYSTEM')
         .setDescription(`
-Use the buttons below to manage your duty status. Your current status will be reflected on this panel after you interact with it.
+**Welcome to the Duty Log System!**
+
+• **First time here?** Click **Clock In** to set up your profile and start your first shift.
+• **Returning?** Click **My Status** to view your private duty panel.
+• **All actions are private**—no public confirmations or status messages will appear here.
         `)
         .addFields([
-          { name: 'Your Status', value: '⚫ Unknown (Click Refresh Status)', inline: false },
           { 
-            name: '📋 Instructions', 
+            name: 'How It Works', 
             value: `
-1️⃣ Click **Clock In** or **Clock Out**.
-2️⃣ Use **Refresh Status** to update this panel with your current duty status.
-3️⃣ View detailed history on the web dashboard.
+1️⃣ **First Time:** Click **Clock In** and fill out your profile. You'll only do this once.
+2️⃣ **After Setup:** Use **Clock In/Out** and **My Status** to manage your duty privately.
+3️⃣ **Edit Profile:** Update your info anytime with the Edit button in your private panel.
             `.trim(),
             inline: false 
+          },
+          {
+            name: 'Privacy Notice',
+            value: '✅ All your duty actions and status are private. Only you can see your details.',
+            inline: false
           }
         ])
         .setFooter({ 
-          text: `MAYAAALOKAM RP • Duty Log System`, 
+          text: `MAYAAALOKAM RP • Personal Duty System`, 
           iconURL: process.env.MAYAALOKAM_LOGO_URL || 'http://localhost:3000/images/mayaalokam-logo.png'
         })
         .setTimestamp()
@@ -205,9 +210,9 @@ Use the buttons below to manage your duty status. Your current status will be re
             .setEmoji('🔴'),
           new ButtonBuilder()
             .setCustomId('duty_status')
-            .setLabel('Refresh Status')
+            .setLabel('My Status')
             .setStyle(ButtonStyle.Primary)
-            .setEmoji('🔄')
+            .setEmoji('👤')
         )
 
       await channel.send({
@@ -252,13 +257,13 @@ Use the buttons below to manage your duty status. Your current status will be re
 
       switch (interaction.customId) {
         case 'duty_clockin':
-          await this.showClockInModal(interaction)
+          await this.handleClockIn(interaction)
           break
         case 'duty_clockout':
-          await this.handleClockOutButton(interaction)
+          await this.handleClockOut(interaction)
           break
         case 'duty_status':
-          await this.handleDutyStatusButton(interaction)
+          await this.handlePersonalizedStatus(interaction)
           break
         default:
           if (!interaction.replied && !interaction.deferred) {
@@ -292,236 +297,517 @@ Use the buttons below to manage your duty status. Your current status will be re
            member.permissions.has(PermissionFlagsBits.Administrator)
   }
 
-  private async showClockInModal(interaction: any) {
+  private async handleClockIn(interaction: any) {
     try {
       const { hasActiveSession } = await DutyLogsAPI.getActiveSession(interaction.user.id);
       if (hasActiveSession) {
-        await interaction.reply({
-          content: '❌ You are already on duty. Please clock out before starting a new session.',
-          flags: 64 // MessageFlags.Ephemeral
+        // Show personalized panel instead of error message
+        await this.showPersonalizedPanel(interaction, true);
+        return;
+      }
+
+      // Check for existing profile more thoroughly
+      const { profile, isFirstTime } = await DutyLogsAPI.getUserProfile(interaction.user.id);
+      
+      // Double-check if profile actually exists to avoid duplicate key errors
+      if (profile && profile.character_name && profile.department && profile.rank && profile.call_sign) {
+        // User has a complete profile - clock in with stored data
+        await this.quickClockIn(interaction, profile);
+      } else {
+        // Truly first time user or incomplete profile - show setup modal
+        await this.showFirstTimeSetupModal(interaction);
+      }
+    } catch (error) {
+      console.error('Clock in error:', error);
+      if (!interaction.replied && !interaction.deferred) {
+        await this.showPersonalizedPanel(interaction, false);
+      }
+    }
+  }
+
+  private async handleClockOut(interaction: any) {
+    try {
+      const result = await DutyLogsAPI.clockOut(interaction.user.id);
+      
+      // Always show personalized panel - no separate messages
+      await this.showPersonalizedPanel(interaction, false);
+      
+    } catch (error) {
+      console.error('Clock out error:', error);
+      if (!interaction.replied && !interaction.deferred) {
+        await this.showPersonalizedPanel(interaction, false);
+      }
+    }
+  }
+
+  private async handlePersonalizedStatus(interaction: any) {
+    try {
+      console.log(`🔍 handlePersonalizedStatus - deferred: ${interaction.deferred}, replied: ${interaction.replied}`);
+      console.log(`🔍 Discord ID: ${interaction.user.id}, Username: ${interaction.user.username}`);
+      
+      // CRITICAL FIX: Always defer the interaction immediately to prevent timeouts
+      if (!interaction.deferred && !interaction.replied) {
+        await interaction.deferReply({ ephemeral: true });
+      }
+      
+      const { hasActiveSession, session } = await DutyLogsAPI.getActiveSession(interaction.user.id);
+      console.log(`🔍 Active session found: ${hasActiveSession}`, session ? {
+        character: session.character_name,
+        department: session.department,
+        status: session.status,
+        clock_in: session.clock_in
+      } : 'No session');
+      
+      await this.showPersonalizedPanel(interaction, hasActiveSession);
+    } catch (error) {
+      console.error('Status error:', error);
+      
+      // Enhanced error handling for interaction responses
+      try {
+        const errorMessage = '❌ Error loading your duty panel. Please try again.';
+        
+        if (interaction.deferred && !interaction.replied) {
+          await interaction.editReply({ content: errorMessage });
+        } else if (!interaction.replied && !interaction.deferred) {
+          await interaction.reply({ content: errorMessage, ephemeral: true });
+        } else if (!interaction.replied) {
+          await interaction.editReply({ content: errorMessage });
+        }
+      } catch (replyError) {
+        console.error('Failed to send error reply in handlePersonalizedStatus:', replyError);
+      }
+    }
+  }
+
+  private async showPersonalizedPanel(interaction: any, isOnDuty: boolean) {
+    try {
+      console.log(`🔍 showPersonalizedPanel - Discord ID: ${interaction.user.id}, isOnDuty param: ${isOnDuty}`);
+      
+      const { profile } = await DutyLogsAPI.getUserProfile(interaction.user.id);
+      console.log(`🔍 User profile:`, profile ? {
+        character: profile.character_name,
+        department: profile.department,
+        rank: profile.rank
+      } : 'No profile');
+      
+      const { hasActiveSession, session } = await DutyLogsAPI.getActiveSession(interaction.user.id);
+      console.log(`🔍 Active session check: ${hasActiveSession}`, session ? {
+        character: session.character_name,
+        status: session.status,
+        clock_in: session.clock_in
+      } : 'No active session');
+      
+      let embed;
+      let components: ActionRowBuilder<ButtonBuilder>[] = [];
+
+      if (hasActiveSession && session) {
+        // ON DUTY Panel
+        const clockInTime = new Date(session.clock_in);
+        embed = new EmbedBuilder()
+          .setColor(0x28A745) // Green
+          .setTitle('🟢 Your Duty Status: ON DUTY')
+          .addFields([
+            { name: '👤 Character', value: session.character_name, inline: true },
+            { name: '🏢 Department', value: session.department, inline: true },
+            { name: '⭐ Rank', value: session.rank, inline: true },
+            { name: '📻 Call Sign', value: session.call_sign || 'Not set', inline: true },
+            { name: '⏰ Clocked In', value: `<t:${Math.floor(clockInTime.getTime() / 1000)}:R>`, inline: true },
+            { name: '🆔 Discord', value: `${interaction.user.username}`, inline: true }
+          ])
+          .setFooter({ 
+            text: `MAYAAALOKAM RP • Personal Duty Panel`, 
+            iconURL: process.env.MAYAALOKAM_LOGO_URL 
+          })
+          .setTimestamp();
+
+        if (session.notes) {
+          embed.addFields([{ name: '📝 Notes', value: session.notes, inline: false }]);
+        }
+
+        // Clock Out button
+        components.push(
+          new ActionRowBuilder<ButtonBuilder>()
+            .addComponents(
+              new ButtonBuilder()
+                .setCustomId('quick_clockout')
+                .setLabel('Clock Out')
+                .setStyle(ButtonStyle.Danger)
+                .setEmoji('🔴'),
+              new ButtonBuilder()
+                .setCustomId('edit_profile')
+                .setLabel('Edit Profile')
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji('✏️'),
+              new ButtonBuilder()
+                .setCustomId('refresh_status')
+                .setLabel('Refresh')
+                .setStyle(ButtonStyle.Primary)
+                .setEmoji('🔄')
+            )
+        );
+      } else {
+        // OFF DUTY Panel
+        embed = new EmbedBuilder()
+          .setColor(0xDC3545) // Red
+          .setTitle('🔴 Your Duty Status: OFF DUTY')
+          .setDescription('You are currently off duty. Click "Clock In" to start your shift.')
+          .addFields([
+            { name: '🆔 Discord', value: `${interaction.user.username}`, inline: false }
+          ])
+          .setFooter({ 
+            text: `MAYAAALOKAM RP • Personal Duty Panel`, 
+            iconURL: process.env.MAYAALOKAM_LOGO_URL 
+          })
+          .setTimestamp();
+
+        if (profile) {
+          embed.addFields([
+            { name: '👤 Character', value: profile.character_name, inline: true },
+            { name: '🏢 Department', value: profile.department, inline: true },
+            { name: '⭐ Rank', value: profile.rank, inline: true },
+            { name: '📻 Call Sign', value: profile.call_sign, inline: true }
+          ]);
+        }
+
+        // Clock In and Edit buttons
+        components.push(
+          new ActionRowBuilder<ButtonBuilder>()
+            .addComponents(
+              new ButtonBuilder()
+                .setCustomId('quick_clockin')
+                .setLabel('Clock In')
+                .setStyle(ButtonStyle.Success)
+                .setEmoji('🟢'),
+              new ButtonBuilder()
+                .setCustomId('edit_profile')
+                .setLabel('Edit Profile')
+                .setStyle(ButtonStyle.Secondary)
+                .setEmoji('✏️'),
+              new ButtonBuilder()
+                .setCustomId('refresh_status')
+                .setLabel('Refresh')
+                .setStyle(ButtonStyle.Primary)
+                .setEmoji('🔄')
+            )
+        );
+      }
+
+      // CRITICAL FIX: Proper interaction response handling
+      // Always use editReply for deferred interactions, reply for non-deferred
+      if (interaction.deferred) {
+        await interaction.editReply({ embeds: [embed], components });
+      } else if (!interaction.replied) {
+        await interaction.reply({ embeds: [embed], components, ephemeral: true });
+      } else {
+        // This should rarely happen, but handle it gracefully
+        console.warn('⚠️ Interaction already replied, attempting followUp');
+        await interaction.followUp({ embeds: [embed], components, ephemeral: true });
+      }
+
+    } catch (error) {
+      console.error('Show personalized panel error:', error);
+      
+      // Enhanced error handling with proper interaction state checking
+      try {
+        const errorMessage = '❌ Error loading your duty panel. Please try again.';
+        
+        if (interaction.deferred && !interaction.replied) {
+          await interaction.editReply({ content: errorMessage });
+        } else if (!interaction.replied && !interaction.deferred) {
+          await interaction.reply({ content: errorMessage, ephemeral: true });
+        } else if (!interaction.replied) {
+          // This case should be rare
+          await interaction.editReply({ content: errorMessage });
+        } else {
+          // Interaction already replied, use followUp
+          await interaction.followUp({ content: errorMessage, ephemeral: true });
+        }
+      } catch (replyError) {
+        console.error('Failed to send error reply:', replyError);
+      }
+    }
+  }
+
+  private async showFirstTimeSetupModal(interaction: any) {
+    try {
+      // Show department selection dropdown instead of modal
+      await this.showDepartmentSelection(interaction, 'first_time_setup');
+    } catch (error) {
+      console.error('Show first time setup modal error:', error);
+    }
+  }
+
+  private async showDepartmentSelection(interaction: any, flow: 'first_time_setup' | 'edit_profile') {
+    try {
+      // CRITICAL FIX: Only defer if not already deferred
+      if (!interaction.deferred && !interaction.replied) {
+        await interaction.deferReply({ ephemeral: true });
+      }
+      
+      const departments = await DutyLogsAPI.getDepartments();
+      
+      if (!departments || departments.length === 0) {
+        const errorMessage = '❌ No departments available. Please contact an administrator.';
+        
+        if (interaction.deferred && !interaction.replied) {
+          await interaction.editReply({ content: errorMessage });
+        } else if (!interaction.replied) {
+          await interaction.reply({ content: errorMessage, ephemeral: true });
+        }
+        return;
+      }
+
+      const departmentSelect = new StringSelectMenuBuilder()
+        .setCustomId(`department_select_${flow}`)
+        .setPlaceholder('🏢 Select your department')
+        .addOptions(
+          departments.map(dept => ({
+            label: dept.name,
+            value: dept.name,
+            description: `${dept.emoji} ${dept.abbreviation}`,
+            emoji: dept.emoji
+          }))
+        );
+
+      const selectRow = new ActionRowBuilder<StringSelectMenuBuilder>()
+        .addComponents(departmentSelect);
+
+      const embed = new EmbedBuilder()
+        .setColor(0x0099FF)
+        .setTitle('🏢 Department Selection')
+        .setDescription('Please select your department from the dropdown below.')
+        .setFooter({ 
+          text: `MAYAAALOKAM RP • Setup Process`, 
+          iconURL: process.env.MAYAALOKAM_LOGO_URL 
+        })
+        .setTimestamp();
+
+      // CRITICAL FIX: Always use editReply for deferred interactions
+      if (interaction.deferred && !interaction.replied) {
+        await interaction.editReply({ embeds: [embed], components: [selectRow] });
+      } else if (!interaction.replied) {
+        await interaction.reply({ embeds: [embed], components: [selectRow], ephemeral: true });
+      }
+
+    } catch (error) {
+      console.error('Show department selection error:', error);
+      
+      // Enhanced error handling
+      try {
+        const errorMessage = '❌ Error loading departments. Please try again.';
+        
+        if (interaction.deferred && !interaction.replied) {
+          await interaction.editReply({ content: errorMessage });
+        } else if (!interaction.replied && !interaction.deferred) {
+          await interaction.reply({ content: errorMessage, ephemeral: true });
+        } else if (!interaction.replied) {
+          await interaction.editReply({ content: errorMessage });
+        } else {
+          await interaction.followUp({ content: errorMessage, ephemeral: true });
+        }
+      } catch (replyError) {
+        console.error('Failed to send error reply:', replyError);
+      }
+    }
+  }
+
+  private async showRankSelection(interaction: any, department: string, flow: 'first_time_setup' | 'edit_profile') {
+    try {
+      const ranks = await DutyLogsAPI.getRanksByDepartment(department);
+      
+      if (!ranks || ranks.length === 0) {
+        await interaction.editReply({
+          content: `❌ No ranks found for ${department}. Please contact an administrator.`,
+          components: []
         });
         return;
       }
 
-      // Check if interaction is still valid before proceeding
-      if (!interaction.isRepliable()) {
-        console.error('❌ Clock in interaction expired before showing modal')
-        return
-      }
-
-      // Step 1: Show department selection dropdown
-      await this.showDepartmentSelection(interaction)
-    } catch (error) {
-      console.error('Show clock in modal error:', error)
-      // Only reply if we haven't responded and the interaction is still valid
-      if (!interaction.replied && !interaction.deferred && interaction.isRepliable()) {
-        try {
-          await interaction.reply({
-            content: '❌ An error occurred while opening the clock in form. The interaction may have expired.',
-            flags: 64 // MessageFlags.Ephemeral
-          })
-        } catch (replyError) {
-          console.error('Failed to send error reply:', replyError)
-        }
-      }
-    }
-  }
-
-  private async showDepartmentSelection(interaction: any) {
-    try {
-      const departmentOptions = Object.keys(this.departments).map(dept => ({
-        label: dept,
-        value: dept,
-        description: `Join the ${dept} department`,
-        emoji: this.getDepartmentEmoji(dept)
-      }))
-
-      const selectMenu = new StringSelectMenuBuilder()
-        .setCustomId('duty_department_select')
-        .setPlaceholder('🏢 Select your department')
-        .addOptions(departmentOptions)
-
-      const actionRow = new ActionRowBuilder<StringSelectMenuBuilder>()
-        .addComponents(selectMenu)
-
-      const embed = new EmbedBuilder()
-        .setColor(0x0099FF)
-        .setTitle('🟢 Clock In - Step 1')
-        .setDescription('**Select your department to continue with clock in process**')
-        .addFields([
-          {
-            name: '📋 Available Departments',
-            value: Object.keys(this.departments).map(dept => 
-              `${this.getDepartmentEmoji(dept)} **${dept}**`
-            ).join('\n'),
-            inline: false
-          }
-        ])
-        .setFooter({ text: 'Step 1 of 2 • Select your department first' })
-
-      await interaction.reply({
-        embeds: [embed],
-        components: [actionRow],
-        flags: 64 // MessageFlags.Ephemeral
-      })
-    } catch (error) {
-      console.error('Show department selection error:', error)
-      if (!interaction.replied && !interaction.deferred && interaction.isRepliable()) {
-        try {
-          await interaction.reply({
-            content: '❌ An error occurred while showing department selection.',
-            flags: 64
-          })
-        } catch (replyError) {
-          console.error('Failed to send error reply:', replyError)
-        }
-      }
-    }
-  }
-
-  private async handleDepartmentSelection(interaction: any) {
-    try {
-      if (!interaction.isRepliable()) {
-        console.error('❌ Department selection interaction expired');
-        return;
-      }
-
-      // Check if interaction is from the duty logs server
-      if (interaction.guildId !== this.dutyLogsGuildId) {
-        await interaction.reply({
-          content: '❌ Duty log features are only available in the designated duty logs server.',
-          flags: 64
-        }).catch(() => {});
-        return;
-      }
-
-      const department = interaction.values[0];
-      await this.showRankSelection(interaction, department);
-    } catch (error) {
-      console.error('Handle department selection error:', error);
-      if (!interaction.replied && !interaction.deferred && interaction.isRepliable()) {
-        await interaction.reply({ content: '❌ An error occurred.', flags: 64 }).catch(() => {});
-      }
-    }
-  }
-
-  private async showRankSelection(interaction: any, department: string) {
-    try {
-      const ranks = this.departments[department as keyof typeof this.departments];
-      const rankOptions = ranks.map(rank => ({
-        label: rank,
-        value: rank,
-        description: `${department} - ${rank}`
-      }));
-
-      const selectMenu = new StringSelectMenuBuilder()
-        .setCustomId(`duty_rank_select_${department}`)
+      const rankSelect = new StringSelectMenuBuilder()
+        .setCustomId(`rank_select_${flow}_${department}`)
         .setPlaceholder('⭐ Select your rank')
-        .addOptions(rankOptions);
+        .addOptions(
+          ranks.map(rank => ({
+            label: rank.name,
+            value: rank.name,
+            description: `Level ${rank.hierarchy_level}`
+          }))
+        );
 
-      const actionRow = new ActionRowBuilder<StringSelectMenuBuilder>()
-        .addComponents(selectMenu);
-      
       const embed = new EmbedBuilder()
         .setColor(0x0099FF)
-        .setTitle('🟢 Clock In - Step 2')
-        .setDescription(`**Select your rank for the ${department} department**`)
-        .setFooter({ text: 'The clock-in form will open after you select a rank.' });
+        .setTitle(flow === 'first_time_setup' ? '🎯 Setup Your Duty Profile' : '✏️ Edit Your Profile')
+        .setDescription(`**Step 2 of 3:** Select your rank in **${department}**`)
+        .setFooter({ 
+          text: 'MAYAAALOKAM RP • Profile Setup', 
+          iconURL: process.env.MAYAALOKAM_LOGO_URL 
+        });
 
-      await interaction.update({
-        embeds: [embed],
-        components: [actionRow]
-      });
+      const row = new ActionRowBuilder<StringSelectMenuBuilder>()
+        .addComponents(rankSelect);
+
+      await interaction.editReply({ embeds: [embed], components: [row] });
+
     } catch (error) {
       console.error('Show rank selection error:', error);
+      await interaction.editReply({
+        content: '❌ Failed to load ranks. Please try again.',
+        components: []
+      });
     }
   }
 
-  private async handleRankSelection(interaction: any) {
+  private async showFinalSetupSubmit(interaction: any) {
     try {
-      if (!interaction.isRepliable()) {
-        console.error('❌ Rank selection interaction expired');
-        return;
-      }
-
-      // Check if interaction is from the duty logs server
-      if (interaction.guildId !== this.dutyLogsGuildId) {
-        await interaction.reply({
-          content: '❌ Duty log features are only available in the designated duty logs server.',
-          flags: 64
-        }).catch(() => {});
-        return;
+      // Parse the custom ID: final_setup_flow_department_rank
+      // Example: final_setup_first_time_setup_SASP_Cadet
+      const customId = interaction.customId;
+      
+      // Remove the "final_setup_" prefix
+      const withoutPrefix = customId.replace('final_setup_', '');
+      
+      // Determine the flow type and extract the rest
+      let flow: 'first_time_setup' | 'edit_profile';
+      let remainingParts: string;
+      
+      if (withoutPrefix.startsWith('first_time_setup_')) {
+        flow = 'first_time_setup';
+        remainingParts = withoutPrefix.replace('first_time_setup_', '');
+      } else if (withoutPrefix.startsWith('edit_profile_')) {
+        flow = 'edit_profile';
+        remainingParts = withoutPrefix.replace('edit_profile_', '');
+      } else {
+        throw new Error(`Unknown flow in custom ID: ${customId}`);
       }
       
-      const department = interaction.customId.replace('duty_rank_select_', '');
-      const rank = interaction.values[0];
-      await this.showFinalClockInModal(interaction, department, rank);
-    } catch (error) {
-      console.error('Handle rank selection error:', error);
-    }
-  }
+      // Split the remaining parts and get department and rank
+      const parts = remainingParts.split('_');
+      const rank = parts[parts.length - 1]; // Last part is always the rank
+      const department = parts.slice(0, -1).join('_'); // Everything except the last part is the department
 
-  private async showFinalClockInModal(interaction: any, department: string, rank: string) {
-    try {
-      // Use a delimiter that won't conflict with department/rank names
-      const modal = new ModalBuilder()
-        .setCustomId(`duty_final_modal|${department}|${rank}`)
-        .setTitle(`🟢 ${department} - ${rank}`)
+      const profileData: UserProfile = {
+        discord_id: interaction.user.id,
+        username: `${interaction.user.username}#${interaction.user.discriminator}`,
+        character_name: interaction.fields.getTextInputValue('character_name'),
+        department: department,
+        rank: rank,
+        call_sign: interaction.fields.getTextInputValue('call_sign')
+      };
 
-      const characterNameInput = new TextInputBuilder()
-        .setCustomId('character_name')
-        .setLabel('Character Name')
-        .setStyle(TextInputStyle.Short)
-        .setPlaceholder('Enter your character name')
-        .setRequired(true)
-        .setMaxLength(50)
 
-      const callSignInput = new TextInputBuilder()
-        .setCustomId('call_sign')
-        .setLabel('Call Sign')
-        .setStyle(TextInputStyle.Short)
-        .setPlaceholder('Your radio call sign (e.g., 1-Adam-12)')
-        .setRequired(true)
-        .setMaxLength(20)
 
-      const notesInput = new TextInputBuilder()
-        .setCustomId('notes')
-        .setLabel('Notes (Optional)')
-        .setStyle(TextInputStyle.Paragraph)
-        .setPlaceholder('Any additional notes for this shift...')
-        .setRequired(false)
-        .setMaxLength(200)
+      const result = await DutyLogsAPI.createOrUpdateUserProfile(profileData);
+      
+      if (result.success) {
+        if (flow === 'first_time_setup') {
+          // Clock in for new users
+          await DutyLogsAPI.clockIn({
+            discord_id: profileData.discord_id,
+            username: profileData.username,
+            character_name: profileData.character_name,
+            department: profileData.department,
+            rank: profileData.rank,
+            call_sign: profileData.call_sign
+          });
+          
+          const successEmbed = new EmbedBuilder()
+            .setColor(0x28A745)
+            .setTitle('🎉 Profile Setup Complete!')
+            .setDescription('Your profile has been saved and you are now on duty!')
+            .addFields([
+              { name: '👤 Character', value: profileData.character_name, inline: true },
+              { name: '🏢 Department', value: profileData.department, inline: true },
+              { name: '⭐ Rank', value: profileData.rank, inline: true },
+              { name: '📻 Call Sign', value: profileData.call_sign, inline: true },
+              { name: '🆔 Discord', value: `${interaction.user.username}`, inline: true },
+              { name: '⏰ Status', value: '🟢 ON DUTY', inline: true }
+            ])
+            .setFooter({ 
+              text: `MAYAAALOKAM RP • Profile Setup Complete`, 
+              iconURL: process.env.MAYAALOKAM_LOGO_URL 
+            })
+            .setTimestamp();
 
-      const firstActionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(characterNameInput)
-      const secondActionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(callSignInput)
-      const thirdActionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(notesInput)
+          await interaction.reply({ embeds: [successEmbed], flags: MessageFlags.Ephemeral });
+        } else {
+          // Edit profile - just update
+          const successEmbed = new EmbedBuilder()
+            .setColor(0x28A745)
+            .setTitle('✅ Profile Updated Successfully!')
+            .addFields([
+              { name: '👤 Character', value: profileData.character_name, inline: true },
+              { name: '🏢 Department', value: profileData.department, inline: true },
+              { name: '⭐ Rank', value: profileData.rank, inline: true },
+              { name: '📻 Call Sign', value: profileData.call_sign, inline: true }
+            ])
+            .setFooter({ 
+              text: `MAYAAALOKAM RP • Profile Updated`, 
+              iconURL: process.env.MAYAALOKAM_LOGO_URL 
+            })
+            .setTimestamp();
 
-      modal.addComponents(firstActionRow, secondActionRow, thirdActionRow)
-
-      await interaction.showModal(modal)
-    } catch (error) {
-      console.error('Show final clock in modal error:', error)
-      if (!interaction.replied && !interaction.deferred && interaction.isRepliable()) {
-        try {
-          await interaction.reply({
-            content: '❌ An error occurred while opening the final clock in form.',
-            flags: 64
-          })
-        } catch (replyError) {
-          console.error('Failed to send error reply:', replyError)
+          await interaction.reply({ embeds: [successEmbed], flags: MessageFlags.Ephemeral });
         }
+      } else {
+        const errorMessage = '❌ Failed to save your profile. Please try again.';
+        await interaction.reply({ content: errorMessage, flags: MessageFlags.Ephemeral });
+      }
+
+    } catch (error) {
+      console.error('Handle final setup submit error:', error);
+      const errorMessage = '❌ An error occurred while saving your profile.';
+      
+      try {
+        await interaction.reply({ content: errorMessage, flags: MessageFlags.Ephemeral });
+      } catch (replyError) {
+        console.error('Failed to send error reply:', replyError);
       }
     }
   }
 
-  private getDepartmentEmoji(department: string): string {
-    const emojiMap: { [key: string]: string } = {
-      'PD': '👮',
-      'EMS': '🚑',
-      'Mechanic': '🔧',
-      'Merry weather': '🛡️'
+  private async quickClockIn(interaction: any, profile: UserProfile) {
+    try {
+      const dutyData = {
+        discord_id: interaction.user.id,
+        username: `${interaction.user.username}#${interaction.user.discriminator}`,
+        character_name: profile.character_name,
+        department: profile.department,
+        rank: profile.rank,
+        call_sign: profile.call_sign
+      };
+
+      const result = await DutyLogsAPI.clockIn(dutyData);
+      
+      if (result.success) {
+        // Show updated personalized panel - no separate message
+        await this.showPersonalizedPanel(interaction, true);
+      } else {
+        // Show error message and then the panel
+        const errorMessage = `❌ Clock in failed: ${result.message}`;
+        
+        if (interaction.deferred && !interaction.replied) {
+          await interaction.editReply({ content: errorMessage });
+        } else if (!interaction.replied) {
+          await interaction.reply({ content: errorMessage, ephemeral: true });
+        }
+      }
+
+    } catch (error) {
+      console.error('Quick clock in error:', error);
+      
+      // Enhanced error handling
+      try {
+        const errorMessage = '❌ Error during clock in. Please try again.';
+        
+        if (interaction.deferred && !interaction.replied) {
+          await interaction.editReply({ content: errorMessage });
+        } else if (!interaction.replied) {
+          await interaction.reply({ content: errorMessage, ephemeral: true });
+        }
+      } catch (replyError) {
+        console.error('Failed to send error reply in quickClockIn:', replyError);
+      }
     }
-    return emojiMap[department] || '🏢'
   }
 
   private async handleDutyClockInModal(interaction: any) {
@@ -549,86 +835,54 @@ Use the buttons below to manage your duty status. Your current status will be re
       
       const result = await DutyLogsAPI.clockIn(dutyData);
       
-      const message = result.success 
-        ? '✅ You are now on duty! You can dismiss this message.' 
-        : `❌ Clock in failed: ${result.message}`;
+      if (result.success) {
+        // Create a detailed success embed
+        const successEmbed = new EmbedBuilder()
+          .setColor(0x28A745) // Green color for success
+          .setTitle('🟢 Successfully Clocked In!')
+          .addFields([
+            { name: 'Character Name', value: dutyData.character_name, inline: true },
+            { name: 'Department', value: dutyData.department, inline: true },
+            { name: 'Rank', value: dutyData.rank, inline: true },
+            { name: 'Call Sign', value: dutyData.call_sign, inline: true },
+            { name: 'Discord User', value: dutyData.username, inline: true },
+            { name: 'Clocked In', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: true }
+          ])
+          .setFooter({ 
+            text: `MAYAAALOKAM RP • Duty Log System`, 
+            iconURL: process.env.MAYAALOKAM_LOGO_URL || 'http://localhost:3000/images/mayaalokam-logo.png'
+          })
+          .setTimestamp();
+        
+        if (dutyData.notes) {
+          successEmbed.addFields([
+            { name: 'Notes', value: dutyData.notes, inline: false }
+          ]);
+        }
 
-      await interaction.editReply({ content: message });
+        await interaction.editReply({ embeds: [successEmbed] });
+      } else {
+        // Create an error embed
+        const errorEmbed = new EmbedBuilder()
+          .setColor(0xDC3545) // Red color for error
+          .setTitle('❌ Clock In Failed')
+          .setDescription(result.message)
+          .addFields([
+            { name: 'Discord User', value: `${interaction.user.username}#${interaction.user.discriminator}`, inline: false }
+          ])
+          .setFooter({ 
+            text: `MAYAAALOKAM RP • Duty Log System`, 
+            iconURL: process.env.MAYAALOKAM_LOGO_URL || 'http://localhost:3000/images/mayaalokam-logo.png'
+          })
+          .setTimestamp();
+
+        await interaction.editReply({ embeds: [errorEmbed] });
+      }
 
     } catch (error) {
       console.error('❌ Duty clock in modal error:', error);
       if (interaction.deferred) {
         await interaction.editReply({ content: '❌ An unexpected error occurred while processing your clock-in.' });
-      }
-    }
-  }
-
-  private async handleClockOutButton(interaction: any) {
-    try {
-      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
-      const { hasActiveSession } = await DutyLogsAPI.getActiveSession(interaction.user.id);
-      if (!hasActiveSession) {
-        await interaction.editReply({ content: '❌ You are not currently on duty.' });
-        return;
-      }
-
-      const result = await DutyLogsAPI.clockOut(interaction.user.id);
-      
-      const message = result.success 
-        ? '✅ You have been clocked out. You can dismiss this message.' 
-        : `❌ Clock out failed: ${result.message}`;
-      
-      await interaction.editReply({ content: message });
-
-    } catch (error) {
-      console.error('Clock out button error:', error);
-      if (interaction.deferred) {
-        await interaction.editReply({ content: '❌ An unexpected error occurred while clocking out.' });
-      }
-    }
-  }
-
-  private async handleDutyStatusButton(interaction: any) {
-    try {
-      // Defer the reply to prevent timeout
-      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-  
-      const { hasActiveSession, session } = await DutyLogsAPI.getActiveSession(interaction.user.id);
-  
-      const originalEmbed = interaction.message.embeds[0];
-      const newEmbed = new EmbedBuilder(originalEmbed.data);
-  
-      let statusField;
-      if (hasActiveSession && session) {
-        const clockInTime = new Date(session.clock_in);
-        statusField = {
-          name: 'Your Status: 🟢 ON DUTY',
-          value: `**Character:** ${session.character_name}\n**Clocked In:** <t:${Math.floor(clockInTime.getTime() / 1000)}:R>`,
-          inline: false
-        };
-      } else {
-        statusField = {
-          name: 'Your Status: 🔴 OFF DUTY',
-          value: 'You are not currently clocked in. Click "Clock In" to start a new session.',
-          inline: false
-        };
-      }
-  
-      // Replace the old status field with the new one
-      newEmbed.spliceFields(0, 1, statusField);
-  
-      await interaction.message.edit({ embeds: [newEmbed] });
-  
-      // Notify the user silently that the panel has been updated
-      await interaction.editReply({ content: '✅ The duty panel has been updated with your status.' });
-  
-    } catch (error) {
-      console.error('Duty status button error:', error);
-      if (!interaction.replied && !interaction.deferred) {
-        await interaction.reply({ content: '❌ An error occurred while refreshing your status.', flags: MessageFlags.Ephemeral });
-      } else {
-        await interaction.editReply({ content: '❌ An error occurred while refreshing your status.' });
       }
     }
   }
@@ -707,6 +961,8 @@ Use the buttons below to manage your duty status. Your current status will be re
       const reason = interaction.fields.getTextInputValue('decline_reason')
       
       await this.processDeclineApplication(interaction, applicationId, reason)
+    } else if (interaction.customId === 'first_time_setup') {
+      await this.handleFirstTimeSetup(interaction)
     }
   }
 
@@ -1204,6 +1460,319 @@ Use the buttons below to manage your duty status. Your current status will be re
   public clearProcessedApplications() {
     this.processedApplications.clear()
     console.log('🧹 Cleared processed applications cache')
+  }
+
+  private async handleFirstTimeSetup(interaction: any) {
+    try {
+      // Modal interactions are auto-deferred by Discord.js but NOT ephemeral
+      // We need to handle this immediately with a reply instead of editReply
+      // since we can't change the ephemeral state of an already deferred interaction
+
+      const profileData: UserProfile = {
+        discord_id: interaction.user.id,
+        username: `${interaction.user.username}#${interaction.user.discriminator}`,
+        character_name: interaction.fields.getTextInputValue('character_name'),
+        department: interaction.fields.getTextInputValue('department'),
+        rank: interaction.fields.getTextInputValue('rank'),
+        call_sign: interaction.fields.getTextInputValue('call_sign')
+      };
+
+      const result = await DutyLogsAPI.createOrUpdateUserProfile(profileData);
+      
+      if (result.success) {
+        // Clock in with new/updated profile
+        await DutyLogsAPI.clockIn({
+          discord_id: profileData.discord_id,
+          username: profileData.username,
+          character_name: profileData.character_name,
+          department: profileData.department,
+          rank: profileData.rank,
+          call_sign: profileData.call_sign
+        });
+        
+        // Create success embed instead of calling showPersonalizedPanel
+        const successEmbed = new EmbedBuilder()
+          .setColor(0x28A745)
+          .setTitle('🎉 Profile Setup Complete!')
+          .setDescription('Your profile has been saved and you are now on duty!')
+          .addFields([
+            { name: '👤 Character', value: profileData.character_name, inline: true },
+            { name: '🏢 Department', value: profileData.department, inline: true },
+            { name: '⭐ Rank', value: profileData.rank, inline: true },
+            { name: '📻 Call Sign', value: profileData.call_sign, inline: true },
+            { name: '🆔 Discord', value: `${interaction.user.username}`, inline: true },
+            { name: '⏰ Status', value: '🟢 ON DUTY', inline: true }
+          ])
+          .setFooter({ 
+            text: `MAYAAALOKAM RP • Profile Setup Complete`, 
+            iconURL: process.env.MAYAALOKAM_LOGO_URL 
+          })
+          .setTimestamp();
+
+        // Use reply with ephemeral flag since modal interactions aren't ephemeral by default
+        await interaction.reply({ embeds: [successEmbed], flags: MessageFlags.Ephemeral });
+      } else {
+        const errorMessage = '❌ Failed to save your profile. Please try again.';
+        await interaction.reply({ content: errorMessage, flags: MessageFlags.Ephemeral });
+      }
+
+    } catch (error) {
+      console.error('Handle first time setup error:', error);
+      const errorMessage = '❌ An error occurred while setting up your profile.';
+      
+      try {
+        await interaction.reply({ content: errorMessage, flags: MessageFlags.Ephemeral });
+      } catch (replyError) {
+        console.error('Failed to send error reply:', replyError);
+      }
+    }
+  }
+
+  private async handleQuickClockIn(interaction: any) {
+    try {
+      console.log(`🔍 handleQuickClockIn - deferred: ${interaction.deferred}, replied: ${interaction.replied}`);
+      
+      // CRITICAL FIX: Always defer the interaction immediately to prevent timeouts
+      if (!interaction.deferred && !interaction.replied) {
+        await interaction.deferReply({ ephemeral: true });
+      }
+      
+      const { profile, isFirstTime } = await DutyLogsAPI.getUserProfile(interaction.user.id);
+      
+      if (isFirstTime || !profile) {
+        // First time user - show setup flow
+        await this.showFirstTimeSetupModal(interaction);
+      } else {
+        // Existing user - quick clock in
+        await this.quickClockIn(interaction, profile);
+      }
+    } catch (error) {
+      console.error('Quick clock in error:', error);
+      
+      // Enhanced error handling
+      try {
+        const errorMessage = '❌ Error processing clock in. Please try again.';
+        
+        if (interaction.deferred && !interaction.replied) {
+          await interaction.editReply({ content: errorMessage });
+        } else if (!interaction.replied && !interaction.deferred) {
+          await interaction.reply({ content: errorMessage, ephemeral: true });
+        } else if (!interaction.replied) {
+          await interaction.editReply({ content: errorMessage });
+        } else {
+          await interaction.followUp({ content: errorMessage, ephemeral: true });
+        }
+      } catch (replyError) {
+        console.error('Failed to send error reply in handleQuickClockIn:', replyError);
+      }
+    }
+  }
+
+  private async handleQuickClockOut(interaction: any) {
+    try {
+      console.log(`🔍 handleQuickClockOut - deferred: ${interaction.deferred}, replied: ${interaction.replied}`);
+      
+      // CRITICAL FIX: Always defer the interaction immediately to prevent timeouts
+      if (!interaction.deferred && !interaction.replied) {
+        await interaction.deferReply({ ephemeral: true });
+      }
+      
+      const result = await DutyLogsAPI.clockOut(interaction.user.id);
+      
+      if (result.success) {
+        await this.showPersonalizedPanel(interaction, false);
+      } else {
+        // Show error message
+        const errorMessage = `❌ Clock out failed: ${result.message}`;
+        
+        if (interaction.deferred && !interaction.replied) {
+          await interaction.editReply({ content: errorMessage });
+        } else if (!interaction.replied) {
+          await interaction.reply({ content: errorMessage, ephemeral: true });
+        }
+      }
+    } catch (error) {
+      console.error('Handle quick clock out error:', error);
+      
+      // Enhanced error handling
+      try {
+        const errorMessage = '❌ Error during clock out. Please try again.';
+        
+        if (interaction.deferred && !interaction.replied) {
+          await interaction.editReply({ content: errorMessage });
+        } else if (!interaction.replied) {
+          await interaction.reply({ content: errorMessage, ephemeral: true });
+        }
+      } catch (replyError) {
+        console.error('Failed to send error reply in handleQuickClockOut:', replyError);
+      }
+    }
+  }
+
+  private async handleEditProfile(interaction: any) {
+    try {
+      // CRITICAL FIX: Always defer the interaction immediately to prevent timeouts
+      if (!interaction.deferred && !interaction.replied) {
+        await interaction.deferReply({ ephemeral: true });
+      }
+      
+      await this.showDepartmentSelection(interaction, 'edit_profile');
+    } catch (error) {
+      console.error('Handle edit profile error:', error);
+      
+      // Enhanced error handling
+      try {
+        const errorMessage = '❌ An error occurred while loading the edit form. Please try again.';
+        
+        if (interaction.deferred && !interaction.replied) {
+          await interaction.editReply({ content: errorMessage });
+        } else if (!interaction.replied && !interaction.deferred) {
+          await interaction.reply({ content: errorMessage, ephemeral: true });
+        } else if (!interaction.replied) {
+          await interaction.editReply({ content: errorMessage });
+        } else {
+          await interaction.followUp({ content: errorMessage, ephemeral: true });
+        }
+      } catch (replyError) {
+        console.error('Failed to send error reply in handleEditProfile:', replyError);
+      }
+    }
+  }
+
+  private async handleDepartmentSelectMenu(interaction: any) {
+    try {
+      // CRITICAL FIX: Always defer the interaction immediately to prevent timeouts
+      if (!interaction.deferred && !interaction.replied) {
+        await interaction.deferReply({ ephemeral: true });
+      }
+      
+      const selectedDepartment = interaction.values[0];
+      const flow = interaction.customId.includes('first_time_setup') ? 'first_time_setup' : 'edit_profile';
+      
+      await this.showRankSelection(interaction, selectedDepartment, flow);
+    } catch (error) {
+      console.error('Handle department select menu error:', error);
+      
+      // Enhanced error handling
+      try {
+        const errorMessage = '❌ An error occurred. Please try again.';
+        
+        if (interaction.deferred && !interaction.replied) {
+          await interaction.editReply({ content: errorMessage, components: [] });
+        } else if (!interaction.replied && !interaction.deferred) {
+          await interaction.reply({ content: errorMessage, ephemeral: true });
+        } else if (!interaction.replied) {
+          await interaction.editReply({ content: errorMessage, components: [] });
+        } else {
+          await interaction.followUp({ content: errorMessage, ephemeral: true });
+        }
+      } catch (replyError) {
+        console.error('Failed to send error reply in handleDepartmentSelectMenu:', replyError);
+      }
+    }
+  }
+
+  private async handleRankSelectMenu(interaction: any) {
+    try {
+      // CRITICAL FIX: Do NOT defer when showing a modal - modals must be immediate responses
+      const selectedRank = interaction.values[0];
+      const customId = interaction.customId;
+      
+      // Parse the custom ID: rank_select_flow_department
+      // Example: rank_select_first_time_setup_SASP
+      const withoutPrefix = customId.replace('rank_select_', '');
+      
+      // Determine the flow type and extract the department
+      let flow: 'first_time_setup' | 'edit_profile';
+      let department: string;
+      
+      if (withoutPrefix.startsWith('first_time_setup_')) {
+        flow = 'first_time_setup';
+        department = withoutPrefix.replace('first_time_setup_', '');
+      } else if (withoutPrefix.startsWith('edit_profile_')) {
+        flow = 'edit_profile';
+        department = withoutPrefix.replace('edit_profile_', '');
+      } else {
+        throw new Error(`Unknown flow in rank select custom ID: ${customId}`);
+      }
+      
+      await this.handleFinalSetupModal(interaction, department, selectedRank, flow);
+    } catch (error) {
+      console.error('Handle rank select menu error:', error);
+      
+      // Enhanced error handling - use reply since we haven't deferred
+      try {
+        const errorMessage = '❌ An error occurred. Please try again.';
+        
+        if (!interaction.replied && !interaction.deferred) {
+          await interaction.reply({ content: errorMessage, ephemeral: true });
+        } else if (interaction.deferred && !interaction.replied) {
+          await interaction.editReply({ content: errorMessage, components: [] });
+        } else {
+          await interaction.followUp({ content: errorMessage, ephemeral: true });
+        }
+      } catch (replyError) {
+        console.error('Failed to send error reply in handleRankSelectMenu:', replyError);
+      }
+    }
+  }
+
+  private async handleFinalSetupModal(interaction: any, department: string, rank: string, flow: 'first_time_setup' | 'edit_profile') {
+    try {
+      const existingProfile = flow === 'edit_profile' ? 
+        (await DutyLogsAPI.getUserProfile(interaction.user.id)).profile : null;
+
+      const modal = new ModalBuilder()
+        .setCustomId(`final_setup_${flow}_${department}_${rank}`)
+        .setTitle('🎯 Complete Your Profile');
+
+      const characterNameInput = new TextInputBuilder()
+        .setCustomId('character_name')
+        .setLabel('Character Name')
+        .setStyle(TextInputStyle.Short)
+        .setPlaceholder('Enter your character name')
+        .setValue(existingProfile?.character_name || '')
+        .setRequired(true);
+
+      const callSignInput = new TextInputBuilder()
+        .setCustomId('call_sign')
+        .setLabel('Call Sign')
+        .setStyle(TextInputStyle.Short)
+        .setPlaceholder('Enter your call sign (e.g., 101, A-1)')
+        .setValue(existingProfile?.call_sign || '')
+        .setRequired(true);
+
+      modal.addComponents(
+        new ActionRowBuilder<TextInputBuilder>().addComponents(characterNameInput),
+        new ActionRowBuilder<TextInputBuilder>().addComponents(callSignInput)
+      );
+
+      await interaction.showModal(modal);
+
+    } catch (error) {
+      console.error('Show final setup modal error:', error);
+      
+      // Enhanced error handling for both deferred and non-deferred interactions
+      try {
+        const errorMessage = '❌ An error occurred. Please try again.';
+        
+        if (interaction.deferred && !interaction.replied) {
+          // Interaction was deferred (from edit profile flow)
+          await interaction.editReply({ content: errorMessage, components: [] });
+        } else if (!interaction.replied && !interaction.deferred) {
+          // Interaction was not deferred (from rank selection flow)
+          await interaction.reply({ content: errorMessage, ephemeral: true });
+        } else if (!interaction.replied) {
+          // Fallback case
+          await interaction.editReply({ content: errorMessage, components: [] });
+        } else {
+          // Already replied, use followUp
+          await interaction.followUp({ content: errorMessage, ephemeral: true });
+        }
+      } catch (replyError) {
+        console.error('Failed to send error reply in showFinalSetupModal:', replyError);
+      }
+    }
   }
 }
 
