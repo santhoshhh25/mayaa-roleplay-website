@@ -1,4 +1,4 @@
--- MAYAAALOKAM Elite Players Sync Script
+-- MAYAAALOKAM Elite Players Sync Script for QBCore
 -- This script syncs the wealthiest players from your FiveM server to the website
 
 local config = {
@@ -8,68 +8,73 @@ local config = {
     syncInterval = 300000, -- 5 minutes (300,000 milliseconds)
     maxPlayers = 10, -- Top 10 players to sync
     
-    -- Database settings (adjust for your database structure)
-    databaseResource = 'es_extended', -- Your ESX resource name
-    bankTable = 'users', -- Table containing player bank data
-    bankColumn = 'bank', -- Column name for bank money
-    cashColumn = 'money', -- Column name for cash money
-    identifierColumn = 'identifier', -- Column name for player identifier
-    nameColumn = 'firstname', -- Column name for first name
-    lastnameColumn = 'lastname', -- Column name for last name
+    -- QBCore Database settings (adjust for your database structure)
+    -- Default values are for a standard QBCore setup.
+    databaseResource = 'qb-core', -- Your QBCore resource name
+    playersTable = 'players', -- Table containing player data
+    moneyColumn = 'money', -- JSON column for money, e.g., '{"bank": 5000, "cash": 1000}'
+    charinfoColumn = 'charinfo', -- JSON column for character info, e.g., '{"firstname": "John", "lastname": "Doe"}'
+    identifierColumn = 'citizenid', -- Column name for player identifier
 }
 
 -- DO NOT EDIT BELOW THIS LINE UNLESS YOU KNOW WHAT YOU'RE DOING
-local isESX = false
-local ESX = nil
+local isQBCore = false
+local QBCore = nil
 
--- Initialize ESX
+-- Initialize QBCore
 CreateThread(function()
     if GetResourceState(config.databaseResource) == 'started' then
-        ESX = exports[config.databaseResource]:getSharedObject()
-        if ESX then
-            isESX = true
-            print('[MAYAAALOKAM] ESX detected, elite players sync enabled')
+        QBCore = exports[config.databaseResource]:GetCoreObject()
+        if QBCore then
+            isQBCore = true
+            print('[MAYAAALOKAM] QBCore detected, elite players sync enabled')
         end
     end
     
-    if not isESX then
-        print('[MAYAAALOKAM] Warning: ESX not detected, elite players sync disabled')
-        print('[MAYAAALOKAM] Please check your databaseResource configuration')
+    if not isQBCore then
+        print('[MAYAAALOKAM] Warning: QBCore not detected, elite players sync disabled')
+        print('[MAYAAALOKAM] Please check your configuration and ensure qb-core is started.')
     end
 end)
 
 -- Function to get elite players data
 function GetElitePlayersData()
-    if not isESX then
-        print('[MAYAAALOKAM] Cannot get elite players data - ESX not initialized')
+    if not isQBCore then
+        print('[MAYAAALOKAM] Cannot get elite players data - QBCore not initialized')
         return nil
     end
 
     local players = {}
     
-    -- Query to get top players by total money (bank + cash)
+    -- Query to get top players by total money (bank + cash) from JSON fields
+    -- This query assumes money and character info are stored in JSON columns.
+    -- Adjust JSON paths ('$.bank', '$.cash', etc.) if your structure is different.
     local query = string.format([[
         SELECT 
             %s as identifier,
-            %s as firstname,
-            %s as lastname,
-            %s as bank,
-            %s as cash,
-            (%s + %s) as total_money
+            JSON_UNQUOTE(JSON_EXTRACT(%s, '$.firstname')) as firstname,
+            JSON_UNQUOTE(JSON_EXTRACT(%s, '$.lastname')) as lastname,
+            CAST(JSON_EXTRACT(%s, '$.bank') AS SIGNED) as bank,
+            CAST(JSON_EXTRACT(%s, '$.cash') AS SIGNED) as cash,
+            (CAST(JSON_EXTRACT(%s, '$.bank') AS SIGNED) + CAST(JSON_EXTRACT(%s, '$.cash') AS SIGNED)) as total_money
         FROM %s 
         WHERE %s IS NOT NULL 
+          AND JSON_EXTRACT(%s, '$.bank') IS NOT NULL
+          AND JSON_EXTRACT(%s, '$.cash') IS NOT NULL
         ORDER BY total_money DESC 
         LIMIT %d
     ]], 
         config.identifierColumn,
-        config.nameColumn,
-        config.lastnameColumn,
-        config.bankColumn,
-        config.cashColumn,
-        config.bankColumn,
-        config.cashColumn,
-        config.bankTable,
+        config.charinfoColumn,
+        config.charinfoColumn,
+        config.moneyColumn,
+        config.moneyColumn,
+        config.moneyColumn,
+        config.moneyColumn,
+        config.playersTable,
         config.identifierColumn,
+        config.moneyColumn,
+        config.moneyColumn,
         config.maxPlayers
     )
 
@@ -80,7 +85,7 @@ function GetElitePlayersData()
             local player = result[i]
             table.insert(players, {
                 rank = i,
-                identifier = string.gsub(player.identifier or '', 'char1:', ''), -- Clean identifier
+                identifier = player.identifier,
                 name = (player.firstname or 'Unknown') .. ' ' .. (player.lastname or 'Player'),
                 bank = tonumber(player.bank) or 0,
                 cash = tonumber(player.cash) or 0,
@@ -142,7 +147,7 @@ end
 
 -- Main sync function
 function SyncElitePlayersData()
-    if not isESX then
+    if not isQBCore then
         return
     end
 
@@ -189,15 +194,12 @@ RegisterCommand('syncelite', function(source, args, rawCommand)
     if source == 0 then -- Server console
         SyncElitePlayersData()
     else
-        -- Check if player is admin (adjust this based on your admin system)
-        local player = ESX.GetPlayerFromId(source)
-        if player and player.getGroup() == 'admin' then
+        -- Check if player is admin (using QBCore permissions)
+        if QBCore.Functions.HasPermission(source, 'admin') then
             SyncElitePlayersData()
-            TriggerClientEvent('chat:addMessage', source, {
-                color = {0, 255, 0},
-                multiline = true,
-                args = {"[MAYAAALOKAM]", "Elite players sync triggered"}
-            })
+            TriggerClientEvent('QBCore:Notify', source, "Elite players sync triggered", "success", 5000)
+        else
+            TriggerClientEvent('QBCore:Notify', source, "You do not have permission for this command", "error", 5000)
         end
     end
 end, true)

@@ -11,6 +11,6 @@ server_scripts {
 }
 
 dependencies {
-    'es_extended', -- or 'qb-core' for QBCore
+    'qb-core', -- or 'es_extended' for ESX
     'mysql-async' -- or 'oxmysql'
 } 
