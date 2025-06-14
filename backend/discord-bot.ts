@@ -17,7 +17,7 @@ import {
   SlashCommandBuilder,
   StringSelectMenuBuilder
 } from 'discord.js'
-import { DutyLogsAPI, DutyLogData, UserProfile, Department, Rank } from './duty-logs-api'
+import { DutyLogsAPI, DutyLogData, UserProfile, Department, Rank } from './duty-logs-api.js'
 
 
 interface WhitelistApplication {
