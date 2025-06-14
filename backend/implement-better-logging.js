@@ -1,4 +1,4 @@
-const { betterLogger } = require('./better-logging');
+import { betterLogger } from './better-logging.js';
 
 // Enhanced console override for existing applications
 const originalConsole = {
@@ -140,7 +140,7 @@ console.log(`[ENHANCED LOGGING] Log level set to: ${LOG_LEVEL}`);
 console.log(`[ENHANCED LOGGING] Rate limiting enabled: 3 similar messages per 5 minutes`);
 console.log(`[ENHANCED LOGGING] Enhanced logging is now active. Logs will be categorized and rate-limited.`);
 
-module.exports = {
+export {
   betterLogger,
   enhanceKeepAlive,
   restoreConsole

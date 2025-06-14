@@ -1,6 +1,7 @@
 {
   "name": "mayaaalokam-roleplay",
   "version": "1.0.0",
+  "type": "module",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -8,7 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "bot:dev": "tsx backend/server.ts",
-    "bot:build": "tsc backend/server.ts --outDir backend/dist --target es2020 --moduleResolution node --allowSyntheticDefaultImports --esModuleInterop --skipLibCheck",
+    "bot:build": "tsc -p backend/tsconfig.json",
     "bot:start": "node backend/dist/server.js",
     "post-duty-panel": "node backend/post-duty-panel-separate.js",
     "remove-duty-panel": "node backend/remove-duty-panel.js",

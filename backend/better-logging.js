@@ -199,7 +199,7 @@ class BetterLogger {
 // Create singleton instance
 const betterLogger = new BetterLogger();
 
-module.exports = { 
+export { 
   betterLogger, 
   BetterLogger 
 }; 

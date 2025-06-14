@@ -5,7 +5,7 @@ import WhitelistBot, { WhitelistApplication } from './discord-bot.js'
 import { KeepAliveManager } from './keep-alive.js'
 
 // Initialize enhanced logging system (MUST be first!)
-require('./implement-better-logging');
+import './implement-better-logging.js'
 
 // Load environment variables
 dotenv.config()
