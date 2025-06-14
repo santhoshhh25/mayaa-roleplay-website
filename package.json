@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "bot:dev": "tsx backend/server.ts",
-    "bot:build": "tsc -p backend/tsconfig.json && copyfiles -u 1 backend/*.js backend/dist",
+    "bot:build": "tsc -p backend/tsconfig.json && npx copyfiles -u 1 backend/*.js backend/dist",
     "bot:start": "node backend/dist/server.js",
     "post-duty-panel": "node backend/post-duty-panel-separate.js",
     "remove-duty-panel": "node backend/remove-duty-panel.js",
