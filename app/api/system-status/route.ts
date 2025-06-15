@@ -34,7 +34,11 @@ async function checkBackendStatus(): Promise<{ status: 'healthy' | 'degraded' | 
   const startTime = Date.now()
   
   try {
-    const backendUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+    const backendUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL
+    
+    if (!backendUrl) {
+      throw new Error('Backend URL not configured')
+    }
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
     
@@ -131,7 +135,7 @@ export async function GET() {
           status: backendStatus.status,
           uptime: backendStatus.uptime,
           responseTime: backendStatus.responseTime,
-          url: process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001',
+          url: process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'Backend URL not configured',
           lastCheck: backendStatus.lastCheck
         }
       },

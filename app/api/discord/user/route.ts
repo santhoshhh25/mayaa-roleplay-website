@@ -12,7 +12,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Forward the request to the backend
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL
+    
+    if (!backendUrl) {
+      throw new Error('NEXT_PUBLIC_API_URL environment variable is not configured')
+    }
     const response = await fetch(`${backendUrl}/api/discord/user`, {
       headers: {
         Authorization: authHeader,

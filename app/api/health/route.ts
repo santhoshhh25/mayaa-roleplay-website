@@ -29,7 +29,11 @@ interface HealthCheckStatus {
 async function checkBackendHealth(): Promise<{ status: string; latency?: number; error?: string }> {
   const startTime = Date.now()
   try {
-    const backendUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+    const backendUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL
+    
+    if (!backendUrl) {
+      throw new Error('Backend URL not configured')
+    }
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 5000)
     
@@ -64,7 +68,11 @@ async function checkDatabaseHealth(): Promise<{ status: string; latency?: number
   const startTime = Date.now()
   try {
     // Check if database connection is available via backend
-    const backendUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+    const backendUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL
+    
+    if (!backendUrl) {
+      throw new Error('Backend URL not configured')
+    }
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 3000)
     
@@ -123,8 +131,12 @@ function checkMemoryHealth(): { status: string; usage?: number; limit?: number; 
 
 export async function GET(request: NextRequest) {
   try {
-    // Use environment variable for backend URL, fallback to localhost for development
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+    // Use production backend URL
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL
+    
+    if (!backendUrl) {
+      throw new Error('NEXT_PUBLIC_API_URL environment variable is not configured')
+    }
     const healthUrl = `${backendUrl}/health`
     
     const response = await fetch(healthUrl, {

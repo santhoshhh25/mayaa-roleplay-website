@@ -8,8 +8,12 @@ export async function POST(request: NextRequest) {
     // Get the request body
     const body = await request.json()
     
-    // Use environment variable for backend URL, fallback to localhost for development
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+    // Use production backend URL
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL
+    
+    if (!backendUrl) {
+      throw new Error('NEXT_PUBLIC_API_URL environment variable is not configured')
+    }
     const submitUrl = `${backendUrl}/api/whitelist/submit`
     
     const response = await fetch(submitUrl, {
