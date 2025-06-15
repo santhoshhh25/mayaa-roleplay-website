@@ -122,113 +122,49 @@ function checkMemoryHealth(): { status: string; usage?: number; limit?: number; 
 }
 
 export async function GET() {
-  const startTime = Date.now()
-  
   try {
-    // Perform all health checks in parallel for maximum efficiency
-    const [backendCheck, databaseCheck] = await Promise.allSettled([
-      checkBackendHealth(),
-      checkDatabaseHealth()
-    ])
+    // Check if we can reach the backend health endpoint
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
     
-    const memoryCheck = checkMemoryHealth()
-    
-    // Extract results from Promise.allSettled
-    const backend = backendCheck.status === 'fulfilled' 
-      ? backendCheck.value 
-      : { status: 'unhealthy', error: 'Health check failed' }
-    
-    const database = databaseCheck.status === 'fulfilled' 
-      ? databaseCheck.value 
-      : { status: 'degraded', error: 'Health check failed' }
-    
-    // Determine overall status
-    const checks = {
-      api: { status: 'healthy' }, // Frontend API is healthy if we can respond
-      database,
-      backend,
-      memory: memoryCheck,
-      disk: { status: 'healthy' } // Simple disk check
-    }
-    
-    let overallStatus: 'healthy' | 'degraded' | 'unhealthy' = 'healthy'
-    
-    // Check for critical failures
-    if (backend.status === 'unhealthy' || memoryCheck.status === 'unhealthy') {
-      overallStatus = 'unhealthy'
-    } else if (backend.status === 'degraded' || database.status === 'degraded' || memoryCheck.status === 'degraded') {
-      overallStatus = 'degraded'
-    }
-    
-    const healthStatus: HealthCheckStatus = {
-      status: overallStatus,
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-      service: 'mayaaalokam-frontend',
-      version: process.env.npm_package_version || '1.0.0',
-      environment: process.env.NODE_ENV || 'development',
-      checks,
-      metadata: {
-        nodeVersion: process.version,
-        platform: process.platform,
-        arch: process.arch,
-        pid: process.pid,
-        memoryUsage: process.memoryUsage()
+    let backendStatus = 'unknown'
+    try {
+      // Use AbortController for timeout
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000)
+      
+      const backendResponse = await fetch(`${backendUrl}/health`, {
+        method: 'GET',
+        signal: controller.signal
+      })
+      
+      clearTimeout(timeoutId)
+      
+      if (backendResponse.ok) {
+        const backendData = await backendResponse.json()
+        backendStatus = backendData.botStatus || 'connected'
+      } else {
+        backendStatus = 'disconnected'
       }
+    } catch (error) {
+      backendStatus = 'disconnected'
     }
-    
-    const responseTime = Date.now() - startTime
-    
+
     return NextResponse.json({
-      ...healthStatus,
-      responseTime: `${responseTime}ms`,
-      message: `Frontend service is ${overallStatus}`,
-      lastChecked: new Date().toISOString()
-    }, {
-      status: overallStatus === 'unhealthy' ? 503 : 200,
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      }
+      status: 'ok',
+      message: 'MAYAAALOKAM Frontend is running',
+      frontend: 'healthy',
+      backend: backendStatus,
+      timestamp: new Date().toISOString()
     })
-    
   } catch (error) {
-    // Bulletproof error handling - never let health check fail completely
-    const fallbackStatus: HealthCheckStatus = {
-      status: 'degraded',
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-      service: 'mayaaalokam-frontend',
-      version: process.env.npm_package_version || '1.0.0',
-      environment: process.env.NODE_ENV || 'development',
-      checks: {
-        api: { status: 'degraded', error: 'Health check error' },
-        database: { status: 'unknown', error: 'Unable to check' },
-        backend: { status: 'unknown', error: 'Unable to check' },
-        memory: { status: 'unknown', error: 'Unable to check' },
-        disk: { status: 'unknown', error: 'Unable to check' }
+    return NextResponse.json(
+      {
+        status: 'error',
+        message: 'Health check failed',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString()
       },
-      metadata: {
-        nodeVersion: process.version,
-        platform: process.platform,
-        arch: process.arch,
-        pid: process.pid,
-        memoryUsage: process.memoryUsage()
-      }
-    }
-    
-    return NextResponse.json({
-      ...fallbackStatus,
-      error: error instanceof Error ? error.message : 'Unknown health check error',
-      message: 'Frontend service is degraded due to health check error'
-    }, {
-      status: 200, // Always return 200 to prevent cascading failures
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      }
-    })
+      { status: 500 }
+    )
   }
 } 
