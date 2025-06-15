@@ -1118,23 +1118,22 @@ const WhitelistPage = () => {
                           </motion.div>
                           <span>Character Background Story *</span>
                         </label>
-                        <div className="relative group">
+                        <div className="relative">
                           <textarea
                             id="characterBackground"
-                            rows={6}
-                            className={`w-full px-6 py-5 bg-gradient-to-br from-gray-900/80 to-black/60 border-2 rounded-2xl text-white focus:outline-none transition-all duration-500 resize-none backdrop-blur-md group-hover:from-gray-800/90 group-hover:to-gray-900/70 placeholder:text-gray-400 font-medium text-lg leading-relaxed focus:bg-gradient-to-br focus:from-gray-800/90 focus:to-gray-900/80 ${
-                              errors.characterBackground ? 'border-red-400 shadow-red-500/25 shadow-xl bg-red-900/20' : 'border-gray-700/60 focus:border-purple-400 focus:shadow-purple-500/25 focus:shadow-xl hover:border-purple-400/50 hover:shadow-purple-500/15 hover:shadow-lg'
+                            rows={5}
+                            className={`w-full px-6 py-5 bg-gradient-to-br from-gray-900/80 to-black/60 border-2 rounded-2xl text-white focus:outline-none transition-all duration-500 resize-none backdrop-blur-md hover:from-gray-800/90 hover:to-gray-900/70 placeholder:text-gray-400 font-medium text-lg leading-relaxed focus:bg-gradient-to-br focus:from-gray-800/90 focus:to-gray-900/80 ${
+                              errors.characterBackground ? 'border-red-400 shadow-red-500/25 shadow-xl bg-red-900/20' : 'border-gray-700/60 focus:border-cyan-400 focus:shadow-cyan-500/25 focus:shadow-xl hover:border-cyan-400/50 hover:shadow-cyan-500/15 hover:shadow-lg'
                             }`}
-                            placeholder="Describe your character&apos;s background, personality, goals, and what makes them unique in the world of MAYAAALOKAM..."
+                            placeholder="Tell us a detailed story about your character. Their origins, motivations, and personality..."
                             {...register('characterBackground', { 
                               required: 'Character background is required',
-                              minLength: { value: 50, message: 'Background must be at least 50 characters' },
-                              maxLength: { value: 1000, message: 'Background must not exceed 1000 characters' },
+                              minLength: { value: 100, message: 'Background must be at least 100 characters' },
                               validate: (value) => {
                                 if (value) {
                                   const blockedWords = containsBlockedWords(value)
                                   if (blockedWords.length > 0) {
-                                    return 'Character background contains inappropriate content. Please revise.'
+                                    return 'Background contains inappropriate content. Please revise.'
                                   }
                                 }
                                 return true
@@ -1142,15 +1141,9 @@ const WhitelistPage = () => {
                             })}
                             onChange={handleTextareaInput('characterBackground')}
                           />
-                          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-                          
-                          {/* Character counter with style */}
-                          <div className="absolute bottom-3 right-4 text-xs text-gray-400 bg-dark/80 px-2 py-1 rounded-lg backdrop-blur-sm">
-                            {watchedFields.characterBackground?.length || 0}/1000
-                          </div>
                           
                           {/* Character background validation indicator */}
-                          {watchedFields.characterBackground && !errors.characterBackground && watchedFields.characterBackground.length >= 50 && (
+                          {watchedFields.characterBackground && !errors.characterBackground && watchedFields.characterBackground.length >= 100 && (
                             <div className="absolute top-3 right-4">
                               <div className="w-3 h-3 bg-green-400 rounded-full shadow-lg shadow-green-400/50"></div>
                             </div>
