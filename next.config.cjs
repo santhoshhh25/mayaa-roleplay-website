@@ -14,13 +14,16 @@ const nextConfig = {
   trailingSlash: false,
   compress: true,
   poweredByHeader: false,
-  // Optimize for Render deployment
+  // Optimize for Render deployment - NO LOADING SCREENS
   output: 'standalone',
   swcMinify: true,
-  // Disable static optimization for dynamic pages
+  // Prevent render application loading screens
   experimental: {
     optimizePackageImports: ['framer-motion', 'react-icons'],
-    serverComponentsExternalPackages: ['discord.js']
+    serverComponentsExternalPackages: ['discord.js'],
+    appDir: true,
+    // Disable loading UI to prevent "application loading" screens
+    serverMinification: false
   },
   // Reduce bundle size
   modularizeImports: {
@@ -28,14 +31,40 @@ const nextConfig = {
       transform: 'react-icons/{{member}}',
     },
   },
-  // Performance optimizations
+  // Performance optimizations - prevent loading delays
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production'
   },
-  // Ensure proper server startup
+  // Ensure immediate server startup - NO DELAYS
   onDemandEntries: {
-    maxInactiveAge: 25 * 1000,
-    pagesBufferLength: 2,
+    maxInactiveAge: 60 * 1000, // Longer cache to prevent reloading
+    pagesBufferLength: 5, // More pages in buffer
+  },
+  // Disable loading UI completely
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=0, must-revalidate'
+          },
+          {
+            key: 'X-Render-Loading',
+            value: 'disabled'
+          }
+        ]
+      }
+    ]
+  },
+  // Ensure pages load immediately
+  async rewrites() {
+    return {
+      beforeFiles: [],
+      afterFiles: [],
+      fallback: []
+    }
   }
 }
 

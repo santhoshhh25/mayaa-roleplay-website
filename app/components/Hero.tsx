@@ -13,7 +13,7 @@ const Hero = () => {
   const [windowSize, setWindowSize] = useState({ width: 1920, height: 1080 })
   const [shuffledImages, setShuffledImages] = useState<number[]>([])
   const [serverStatus, setServerStatus] = useState({ online: false, players: 0, maxPlayers: 0 });
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Changed to false to prevent loading screens
   
   // Background images for slideshow - all 19 wallpaper images
   const backgroundImages = [

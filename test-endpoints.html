@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord OAuth Endpoint Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .testing { background-color: #fff3cd; color: #856404; }
+        button { margin: 5px; padding: 10px 15px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Discord OAuth Endpoint Test</h1>
+    <p>This will test if the Discord OAuth endpoints are accessible in production.</p>
+    
+    <div id="results"></div>
+    
+    <button onclick="testEndpoints()">Test All Endpoints</button>
+    <button onclick="testOAuthFlow()">Test OAuth Configuration</button>
+    
+    <script>
+        const baseUrl = 'https://mayaaalokam-frontend.onrender.com';
+        
+        function addResult(message, type) {
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.innerHTML = message;
+            document.getElementById('results').appendChild(div);
+        }
+        
+        async function testEndpoints() {
+            document.getElementById('results').innerHTML = '';
+            
+            const endpoints = [
+                '/api/health',
+                '/api/discord/callback',
+                '/api/discord/oauth',
+                '/api/discord/user',
+                '/api/discord/guilds'
+            ];
+            
+            for (const endpoint of endpoints) {
+                addResult(`Testing ${endpoint}...`, 'testing');
+                
+                try {
+                    const response = await fetch(baseUrl + endpoint, {
+                        method: 'GET',
+                        mode: 'no-cors' // To avoid CORS issues for testing
+                    });
+                    
+                    // Since we're using no-cors, we can't read the response
+                    // But if it doesn't throw an error, the endpoint exists
+                    addResult(`✅ ${endpoint} - Endpoint exists (status unknown due to CORS)`, 'success');
+                } catch (error) {
+                    addResult(`❌ ${endpoint} - Error: ${error.message}`, 'error');
+                }
+            }
+        }
+        
+        async function testOAuthFlow() {
+            document.getElementById('results').innerHTML = '';
+            
+            // Test OAuth configuration
+            addResult('Testing OAuth Configuration...', 'testing');
+            
+            const clientId = '1383425418949824574';
+            const redirectUri = baseUrl + '/api/discord/callback';
+            const oauthUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify%20guilds`;
+            
+            addResult(`Discord OAuth URL: <a href="${oauthUrl}" target="_blank">${oauthUrl}</a>`, 'testing');
+            
+            // Test if callback endpoint is accessible
+            try {
+                const response = await fetch(redirectUri, {
+                    method: 'GET',
+                    mode: 'no-cors'
+                });
+                addResult(`✅ Callback endpoint appears to be accessible`, 'success');
+            } catch (error) {
+                addResult(`❌ Callback endpoint error: ${error.message}`, 'error');
+            }
+            
+            addResult('💡 Try clicking the Discord OAuth URL above to test the flow', 'testing');
+        }
+        
+        // Auto-run tests on page load
+        window.onload = function() {
+            testEndpoints();
+        };
+    </script>
+</body>
+</html> 

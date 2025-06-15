@@ -110,7 +110,7 @@ interface AdminDutyLogsResponse {
 
 const DutyLogsPage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [isLoading, setIsLoading] = useState(true) // Start with loading true for session check
+  const [isLoading, setIsLoading] = useState(false) // No loading screen - immediate render
   const [currentTime, setCurrentTime] = useState(new Date())
   const [user, setUser] = useState<DiscordUser | null>(null)
   const [dutyData, setDutyData] = useState<DutyLogResponse | null>(null)

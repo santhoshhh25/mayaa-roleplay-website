@@ -24,7 +24,7 @@ interface PlayerData {
 
 const ElitePlayersPage = () => {
   const [players, setPlayers] = useState<PlayerData[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false) // No loading screen
 
 
   // Mock data - In real implementation, this would come from your API

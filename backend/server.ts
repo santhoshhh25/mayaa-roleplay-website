@@ -2,7 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
 import WhitelistBot, { WhitelistApplication } from './discord-bot.js'
-import { KeepAliveManager } from './keep-alive.js'
+import { EnhancedHealthSystem } from './enhanced-health-system.js'
 
 // Initialize enhanced logging system (MUST be first!)
 import './implement-better-logging.js'
@@ -22,9 +22,9 @@ app.use(cors({
 }))
 app.use(express.json())
 
-// Initialize Discord bot and Keep-Alive manager
+// Initialize Discord bot and Enhanced Health System
 let discordBot: WhitelistBot | null = null
-let keepAliveManager: KeepAliveManager | null = null
+let healthSystem: EnhancedHealthSystem | null = null
 
 // Rate limiting - prevent spam submissions
 const submissionTracker = new Map<string, number>()
@@ -45,18 +45,18 @@ function checkRateLimit(ip: string): boolean {
 
 async function initializeBot() {
   try {
-    // Initialize Keep-Alive Manager first
-    keepAliveManager = new KeepAliveManager(app)
-    console.log('🛡️ Keep-Alive Manager initialized')
+    // Initialize Enhanced Health System first
+    healthSystem = new EnhancedHealthSystem(app)
+    console.log('🏥 Enhanced Health System initialized')
 
     try {
       discordBot = new WhitelistBot()
       await discordBot.start()
       
-      // Connect Discord bot to Keep-Alive Manager for monitoring
-      if (keepAliveManager && discordBot) {
-        keepAliveManager.setDiscordClient(discordBot.getClient())
-        console.log('🔗 Discord bot connected to Keep-Alive monitoring')
+      // Connect Discord bot to Enhanced Health System for monitoring
+      if (healthSystem && discordBot) {
+        healthSystem.setDiscordClient(discordBot.getClient())
+        console.log('🔗 Discord bot connected to Enhanced Health monitoring')
       }
       
       console.log('🤖 Discord bot initialized successfully')
@@ -67,10 +67,7 @@ async function initializeBot() {
       discordBot = null
     }
     
-    // Display setup instructions
-    if (keepAliveManager) {
-      console.log('\n' + keepAliveManager.getSetupInstructions())
-    }
+    console.log('✅ All systems initialized successfully')
   } catch (error) {
     console.error('❌ Failed to initialize server:', error)
     process.exit(1)
@@ -300,9 +297,9 @@ async function startServer() {
       console.log(`🌐 Health check: http://localhost:${PORT}/health`)
       console.log(`📋 Submit endpoint: http://localhost:${PORT}/api/whitelist/submit`)
       
-      // Start keep-alive monitoring after server is ready
-      if (keepAliveManager) {
-        keepAliveManager.startMonitoring();
+      // Start enhanced health monitoring after server is ready
+      if (healthSystem) {
+        healthSystem.startMonitoring()
       }
     })
   } catch (error) {

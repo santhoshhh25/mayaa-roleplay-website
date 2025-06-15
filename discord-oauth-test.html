@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord OAuth Configuration Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
+        .status { margin: 10px 0; padding: 15px; border-radius: 8px; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .test-url { background: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0; word-break: break-all; }
+        button { margin: 10px 5px; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-success { background-color: #28a745; color: white; }
+        .btn-warning { background-color: #ffc107; color: black; }
+        .checklist { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0; }
+        .checklist ul { margin: 0; }
+        .checklist li { margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Discord OAuth Configuration Diagnostic</h1>
+    
+    <div class="error">
+        <h3>🚨 Current Issues Detected:</h3>
+        <ul>
+            <li>Discord OAuth page returning empty content</li>
+            <li>Redirecting to localhost:3000 instead of production</li>
+            <li>Getting "missing_code" error</li>
+        </ul>
+    </div>
+
+    <div class="checklist">
+        <h3>📋 Discord Developer Portal Checklist:</h3>
+        <ul>
+            <li>☐ Go to <a href="https://discord.com/developers/applications/1383425418949824574" target="_blank">Discord Developer Portal</a></li>
+            <li>☐ Check if application is <strong>PUBLIC</strong> (not team-only)</li>
+            <li>☐ Go to OAuth2 → General → Redirects</li>
+            <li>☐ Remove ALL localhost redirect URIs</li>
+            <li>☐ Keep ONLY: <code>https://mayaaalokam-frontend.onrender.com/api/discord/callback</code></li>
+            <li>☐ Save changes and wait 5 minutes</li>
+        </ul>
+    </div>
+
+    <h3>🧪 Test URLs:</h3>
+    
+    <div class="info">
+        <h4>1. Simple OAuth Test (identify scope only):</h4>
+        <div class="test-url">
+            <a href="https://discord.com/oauth2/authorize?client_id=1383425418949824574&redirect_uri=https%3A%2F%2Fmayaaalokam-frontend.onrender.com%2Fapi%2Fdiscord%2Fcallback&response_type=code&scope=identify" target="_blank">
+                Test Simple OAuth (identify only)
+            </a>
+        </div>
+    </div>
+
+    <div class="info">
+        <h4>2. Full OAuth Test (identify + guilds):</h4>
+        <div class="test-url">
+            <a href="https://discord.com/oauth2/authorize?client_id=1383425418949824574&redirect_uri=https%3A%2F%2Fmayaaalokam-frontend.onrender.com%2Fapi%2Fdiscord%2Fcallback&response_type=code&scope=identify%20guilds" target="_blank">
+                Test Full OAuth (identify + guilds)
+            </a>
+        </div>
+    </div>
+
+    <div class="warning">
+        <h4>3. Direct Callback Test:</h4>
+        <div class="test-url">
+            <a href="https://mayaaalokam-frontend.onrender.com/api/discord/callback" target="_blank">
+                Test Callback Endpoint Directly
+            </a>
+        </div>
+        <p><small>Should redirect to /duty-logs?error=missing_code</small></p>
+    </div>
+
+    <h3>🎯 Expected Results:</h3>
+    
+    <div class="success">
+        <h4>✅ After Fixing Discord Portal:</h4>
+        <ul>
+            <li>OAuth URLs should show Discord authorization page</li>
+            <li>After authorization, redirect to: <code>https://mayaaalokam-frontend.onrender.com/duty-logs?code=...</code></li>
+            <li>NO MORE localhost redirects</li>
+        </ul>
+    </div>
+
+    <div class="error">
+        <h4>❌ Current Broken Behavior:</h4>
+        <ul>
+            <li>Empty page when clicking OAuth URLs</li>
+            <li>Redirects to: <code>https://localhost:3000/duty-logs?error=missing_code</code></li>
+        </ul>
+    </div>
+
+    <h3>📞 Debug Information:</h3>
+    <div class="info">
+        <p><strong>Client ID:</strong> 1383425418949824574</p>
+        <p><strong>Redirect URI:</strong> https://mayaaalokam-frontend.onrender.com/api/discord/callback</p>
+        <p><strong>Frontend Service:</strong> <a href="https://mayaaalokam-frontend.onrender.com/api/health" target="_blank">Health Check</a></p>
+    </div>
+
+    <script>
+        // Auto-test callback endpoint
+        fetch('https://mayaaalokam-frontend.onrender.com/api/health')
+            .then(response => response.json())
+            .then(data => {
+                console.log('Frontend service status:', data);
+                if (data.status === 'healthy') {
+                    const div = document.createElement('div');
+                    div.className = 'status success';
+                    div.innerHTML = '✅ Frontend service is running and healthy';
+                    document.body.appendChild(div);
+                }
+            })
+            .catch(error => {
+                console.error('Frontend service error:', error);
+                const div = document.createElement('div');
+                div.className = 'status error';
+                div.innerHTML = '❌ Frontend service is not accessible: ' + error.message;
+                document.body.appendChild(div);
+            });
+    </script>
+</body>
+</html> 
