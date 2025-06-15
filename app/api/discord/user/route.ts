@@ -11,29 +11,21 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Missing or invalid authorization header' }, { status: 401 })
     }
 
-    const token = authHeader.split(' ')[1]
-
-    const response = await fetch('https://discord.com/api/users/@me', {
+    // Forward the request to the backend
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+    const response = await fetch(`${backendUrl}/api/discord/user`, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: authHeader,
       },
     })
 
     if (!response.ok) {
-      if (response.status === 401) {
-        return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 })
-      }
-      
-      const errorData = await response.text()
-      console.error('Discord user fetch failed:', response.status, errorData)
-      return NextResponse.json({ 
-        error: 'Failed to fetch user data',
-        details: errorData 
-      }, { status: response.status })
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+      console.error('Backend user fetch failed:', response.status, errorData)
+      return NextResponse.json(errorData, { status: response.status })
     }
 
     const userData = await response.json()
-    
     return NextResponse.json(userData)
 
   } catch (error) {

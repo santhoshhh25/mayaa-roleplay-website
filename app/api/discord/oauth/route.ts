@@ -8,45 +8,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Code is required' }, { status: 400 })
     }
 
-    const clientId = process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID
-    const clientSecret = process.env.DISCORD_CLIENT_SECRET
-    const redirectUri = process.env.NEXT_PUBLIC_DISCORD_REDIRECT_URI
-
-    if (!clientId || !clientSecret || !redirectUri) {
-      console.error('Missing Discord OAuth configuration')
-      return NextResponse.json({ 
-        error: 'Discord OAuth not configured',
-        details: 'Missing Discord credentials' 
-      }, { status: 500 })
-    }
-
-    const params = new URLSearchParams({
-      client_id: clientId,
-      client_secret: clientSecret,
-      grant_type: 'authorization_code',
-      code: code,
-      redirect_uri: redirectUri,
-    })
-
-    const response = await fetch('https://discord.com/api/oauth2/token', {
+    // Forward the request to the backend where Discord client secret is available
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+    const response = await fetch(`${backendUrl}/api/discord/oauth`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/json',
       },
-      body: params,
+      body: JSON.stringify({ code }),
     })
 
     if (!response.ok) {
-      const errorData = await response.text()
-      console.error('Discord token exchange failed:', response.status, errorData)
-      return NextResponse.json({ 
-        error: 'Failed to exchange code for token',
-        details: errorData 
-      }, { status: response.status })
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+      console.error('Backend OAuth exchange failed:', response.status, errorData)
+      return NextResponse.json(errorData, { status: response.status })
     }
 
     const tokenData = await response.json()
-    
     return NextResponse.json(tokenData)
 
   } catch (error) {
