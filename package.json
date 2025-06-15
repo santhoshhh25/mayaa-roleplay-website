@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "concurrently \"next start\" \"npm run bot:start\"",
     "lint": "next lint",
     "bot:dev": "tsx backend/server.ts",
     "bot:build": "tsc -p backend/tsconfig.json && npx copyfiles -u 1 backend/*.js backend/dist",

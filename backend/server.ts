@@ -15,7 +15,7 @@ const PORT = process.env.BACKEND_PORT || 3001
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001', process.env.NEXT_PUBLIC_API_URL || ''].filter(url => url !== ''),
+  origin: ['http://localhost:3000', 'http://localhost:3001', 'https://mayaaalokam-frontend.onrender.com', process.env.NEXT_PUBLIC_API_URL || ''].filter(url => url !== ''),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
