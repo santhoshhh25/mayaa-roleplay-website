@@ -761,7 +761,7 @@ const DutyLogsPage = () => {
                         </div>
                         <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 text-center">
                           <div className="text-2xl font-bold text-yellow-400">{adminData.statistics.todayStats.totalSessions}</div>
-                          <div className="text-sm text-gray-400">Today's Sessions</div>
+                          <div className="text-sm text-gray-400">Today&apos;s Sessions</div>
                         </div>
                         <div className="bg-pink-500/10 border border-pink-500/20 rounded-lg p-4 text-center">
                           <div className="text-2xl font-bold text-pink-400">{formatDuration(adminData.statistics.averageSessionTime)}</div>
@@ -1131,7 +1131,7 @@ const DutyLogsPage = () => {
                     {formatDuration(dutyData?.statistics.todayHours || 0)}
                   </div>
                 </div>
-                <div className="text-gray-400">Today's Hours</div>
+                <div className="text-gray-400">Today&apos;s Hours</div>
               </div>
 
               <div className="bg-card rounded-xl p-6 border border-green-500/20">

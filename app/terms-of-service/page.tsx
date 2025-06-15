@@ -205,7 +205,7 @@ const TermsOfServicePage = () => {
               </h3>
               <p className="text-gray-300 mb-6">
                 If you have any questions about these Terms of Service or need clarification on any policies, 
-                please don't hesitate to contact our team through the following channels:
+                please don&apos;t hesitate to contact our team through the following channels:
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4">

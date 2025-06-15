@@ -377,7 +377,7 @@ const WhitelistPage = () => {
       
       try {
         // Submit to Discord bot via API
-        const response = await fetch('http://localhost:3002/api/whitelist/submit', {
+        const response = await fetch('http://localhost:3001/api/whitelist/submit', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -521,7 +521,7 @@ const WhitelistPage = () => {
                 transition={{ delay: 0.5, duration: 0.6 }}
                 className="bg-gradient-to-br from-card/30 to-card/10 backdrop-blur-xl rounded-3xl p-8 mb-12 border border-white/5"
               >
-                <h3 className="text-xl font-semibold text-white mb-6">What's Next?</h3>
+                <h3 className="text-xl font-semibold text-white mb-6">What&apos;s Next?</h3>
                 <div className="space-y-4 text-left">
                   <div className="flex items-center space-x-4">
                     <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
@@ -841,8 +841,8 @@ const WhitelistPage = () => {
                           </p>
                           <ol className="text-gray-300 text-sm space-y-1 list-decimal list-inside">
                             <li>Open Discord Settings (gear icon)</li>
-                            <li>Go to Advanced → Enable "Developer Mode"</li>
-                            <li>Right-click your profile → "Copy User ID"</li>
+                            <li>Go to Advanced → Enable &quot;Developer Mode&quot;</li>
+                            <li>Right-click your profile → &quot;Copy User ID&quot;</li>
                           </ol>
                         </div>
                         
@@ -1029,7 +1029,7 @@ const WhitelistPage = () => {
                             className={`w-full px-6 py-5 bg-gradient-to-br from-gray-900/80 to-black/60 border-2 rounded-2xl text-white focus:outline-none transition-all duration-500 resize-none backdrop-blur-md group-hover:from-gray-800/90 group-hover:to-gray-900/70 placeholder:text-gray-400 font-medium text-lg leading-relaxed focus:bg-gradient-to-br focus:from-gray-800/90 focus:to-gray-900/80 ${
                               errors.characterBackground ? 'border-red-400 shadow-red-500/25 shadow-xl bg-red-900/20' : 'border-gray-700/60 focus:border-purple-400 focus:shadow-purple-500/25 focus:shadow-xl hover:border-purple-400/50 hover:shadow-purple-500/15 hover:shadow-lg'
                             }`}
-                            placeholder="Describe your character's background, personality, goals, and what makes them unique in the world of MAYAAALOKAM..."
+                            placeholder="Describe your character&apos;s background, personality, goals, and what makes them unique in the world of MAYAAALOKAM..."
                             {...register('characterBackground', { 
                               required: 'Character background is required',
                               minLength: { value: 50, message: 'Background must be at least 50 characters' },

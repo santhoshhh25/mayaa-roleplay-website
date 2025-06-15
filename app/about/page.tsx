@@ -179,11 +179,11 @@ const AboutPage = () => {
                   <p>
                     Every aspect of our server has been meticulously crafted by industry professionals who understand 
                     both the technical demands of modern gaming and the cultural nuances that make our community special. 
-                    We don't just host games – we curate experiences.
+                    We don&apos;t just host games – we curate experiences.
                   </p>
                   <p>
                     Today, MAYAAALOKAM stands as a testament to what passionate innovation can achieve. 
-                    We've created more than a server; we've built a digital home where every story matters, 
+                    We&apos;ve created more than a server; we&apos;ve built a digital home where every story matters, 
                     every interaction is meaningful, and every moment is crafted to perfection.
                   </p>
                 </div>
@@ -364,7 +364,7 @@ const AboutPage = () => {
               <p className="text-xl text-gray-400 max-w-4xl mx-auto mb-12">
                 MAYAAALOKAM is proudly developed and maintained by Mayaavi Games, 
                 a leading gaming company dedicated to creating innovative and immersive experiences 
-                that push the boundaries of what's possible in digital entertainment.
+                that push the boundaries of what&apos;s possible in digital entertainment.
               </p>
             </motion.div>
 

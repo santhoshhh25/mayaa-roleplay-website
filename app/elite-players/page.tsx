@@ -460,7 +460,7 @@ From street hustlers to empire builders - these players wrote their own success 
                       </motion.div>
                       <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-3 sm:mb-4">Join the Elite</h3>
                       <p className="text-sm sm:text-base lg:text-lg text-gray-300 mb-6 sm:mb-8 leading-relaxed max-w-2xl mx-auto">
-                        Build your empire, accumulate vast wealth, and earn your place among MAYAAALOKAM's most successful players. 
+                        Build your empire, accumulate vast wealth, and earn your place among MAYAAALOKAM&apos;s most successful players. 
                         <span className="text-primary font-semibold"> Will you rise to the challenge?</span>
                       </p>
                       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center max-w-md sm:max-w-none mx-auto">

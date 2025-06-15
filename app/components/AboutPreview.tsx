@@ -82,7 +82,7 @@ const AboutPreview = () => {
               </p>
               
               <p className="text-gray-400 leading-relaxed">
-                Our server isn't just about gaming—it's about building lasting friendships, 
+                Our server isn&apos;t just about gaming—it&apos;s about building lasting friendships, 
                 exploring limitless possibilities, and experiencing the thrill of living multiple lives 
                 in one incredible virtual world that celebrates our heritage.
               </p>

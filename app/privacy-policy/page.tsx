@@ -243,7 +243,7 @@ const PrivacyPolicyPage = () => {
               <div className="mt-6 p-4 bg-dark/50 rounded-lg">
                 <p className="text-sm text-gray-400">
                   <strong>Data Protection Officer:</strong> For serious privacy concerns or legal compliance issues, 
-                  you may contact our designated data protection team through our Discord server with a ticket marked "PRIVACY REQUEST".
+                  you may contact our designated data protection team through our Discord server with a ticket marked &quot;PRIVACY REQUEST&quot;.
                 </p>
               </div>
             </motion.div>

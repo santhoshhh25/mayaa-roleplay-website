@@ -407,7 +407,7 @@ const RulesPage = () => {
                 </h3>
                 <p className="text-gray-400 mb-8 max-w-2xl mx-auto leading-relaxed">
                   Our staff team is here to help! Whether you have questions about the rules or need to report a violation, 
-                  we're committed to maintaining a fair and enjoyable environment for everyone.
+                  we&apos;re committed to maintaining a fair and enjoyable environment for everyone.
                 </p>
                 
                 <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
