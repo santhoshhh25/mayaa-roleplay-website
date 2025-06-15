@@ -71,7 +71,7 @@ const Footer = () => {
             >
               <Link href="/" className="inline-block mb-4 sm:mb-6">
                 <Image
-                  src="https://i.ibb.co/pBC4n3Yh/Picsart-25-05-29-23-13-39-384.png"
+                  src="/logo.png"
                   alt="MAYAALOKAM Footer Logo"
                   width={200}
                   height={60}

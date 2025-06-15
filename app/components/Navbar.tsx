@@ -57,7 +57,7 @@ const Navbar = () => {
               className="relative"
             >
               <Image
-                src="https://i.ibb.co/pBC4n3Yh/Picsart-25-05-29-23-13-39-384.png"
+                src="/logo.png"
                 alt="MAYAAALOKAM Logo"
                 width={240}
                 height={60}
