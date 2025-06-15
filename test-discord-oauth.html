@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord OAuth Test</title>
+</head>
+<body>
+    <h1>Discord OAuth Test</h1>
+    <p>This page will test the Discord OAuth configuration directly.</p>
+    
+    <h2>Test URLs:</h2>
+    
+    <h3>Production OAuth URL:</h3>
+    <a href="https://discord.com/oauth2/authorize?client_id=1383425418949824574&redirect_uri=https%3A%2F%2Fmayaaalokam-frontend.onrender.com%2Fapi%2Fdiscord%2Fcallback&response_type=code&scope=identify%20guilds&state=production_test" target="_blank">
+        Test Production OAuth (Should redirect to mayaaalokam-frontend.onrender.com)
+    </a>
+    
+    <br><br>
+    
+    <h3>Current Status:</h3>
+    <p>❌ Still redirecting to localhost:3000 - Discord app has multiple redirect URIs or changes not saved</p>
+    
+    <h3>What should happen:</h3>
+    <p>✅ Should redirect to: https://mayaaalokam-frontend.onrender.com/duty-logs?code=...</p>
+    
+    <h3>What's actually happening:</h3>
+    <p>❌ Redirecting to: https://localhost:3000/duty-logs?code=...</p>
+    
+    <h2>Fix Steps:</h2>
+    <ol>
+        <li>Go to Discord Developer Portal</li>
+        <li>Remove ALL redirect URIs</li>
+        <li>Add ONLY: https://mayaaalokam-frontend.onrender.com/api/discord/callback</li>
+        <li>Save changes</li>
+        <li>Wait 5 minutes</li>
+        <li>Test again</li>
+    </ol>
+</body>
+</html> 

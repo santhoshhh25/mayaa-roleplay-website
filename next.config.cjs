@@ -14,9 +14,29 @@ const nextConfig = {
   trailingSlash: false,
   compress: true,
   poweredByHeader: false,
+  // Optimize for Render deployment
+  output: 'standalone',
+  swcMinify: true,
+  // Disable static optimization for dynamic pages
   experimental: {
     optimizePackageImports: ['framer-motion', 'react-icons'],
+    serverComponentsExternalPackages: ['discord.js']
   },
+  // Reduce bundle size
+  modularizeImports: {
+    'react-icons': {
+      transform: 'react-icons/{{member}}',
+    },
+  },
+  // Performance optimizations
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production'
+  },
+  // Ensure proper server startup
+  onDemandEntries: {
+    maxInactiveAge: 25 * 1000,
+    pagesBufferLength: 2,
+  }
 }
 
 module.exports = nextConfig 

@@ -6,7 +6,7 @@ services:
     plan: free
     buildCommand: npm install && npm run build
     startCommand: npm start
-    healthCheckPath: /
+    healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
@@ -28,7 +28,7 @@ services:
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
-      # API URL
+      # API URL (Critical for frontend to work)
       - key: NEXT_PUBLIC_API_URL
         sync: false
       # Optional: Custom branding

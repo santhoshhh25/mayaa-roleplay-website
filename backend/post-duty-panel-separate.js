@@ -1,5 +1,7 @@
-require('dotenv').config()
-const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js')
+import dotenv from 'dotenv'
+import { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js'
+
+dotenv.config()
 
 const client = new Client({
   intents: [
@@ -44,40 +46,32 @@ async function postDutyPanelToSeparateServer() {
         name: 'MAYAAALOKAM ROLEPLAY COMMUNITY', 
         iconURL: process.env.MAYAALOKAM_LOGO_URL || 'http://localhost:3000/images/mayaalokam-logo.png'
       })
-      .setTitle('🕐 DUTY LOG SYSTEM')
+      .setTitle('🕐 PERSONAL DUTY LOG SYSTEM')
       .setDescription(`
-**Welcome to the Duty Log Management System**
+**Welcome to the Duty Log System!**
 
-Use the buttons below to manage your duty status:
-• **Clock In** - Start your duty shift with character details
-• **Clock Out** - End your current shift
-• **Refresh Status** - Update your current duty status
-
-View your detailed duty statistics and history on the web dashboard.
-
-**Available for:** PD, EMS, Mechanic, Merry weather personnel
+• **First time here?** Click **Clock In** to set up your profile and start your first shift.
+• **Returning?** Click **My Status** to view your private duty panel.
+• **All actions are private**—no public confirmations or status messages will appear here.
       `)
       .addFields([
         { 
-          name: '📋 Instructions', 
+          name: 'How It Works', 
           value: `
-1️⃣ Click **Clock In** to start your shift
-2️⃣ Select your department and rank
-3️⃣ Fill out the required character information
-4️⃣ Click **Clock Out** when ending your shift
-5️⃣ Use **Refresh Status** to see your current status
-6️⃣ Visit the web dashboard for detailed statistics and history
+1️⃣ **First Time:** Click **Clock In** and fill out your profile. You'll only do this once.
+2️⃣ **After Setup:** Use **Clock In/Out** and **My Status** to manage your duty privately.
+3️⃣ **Edit Profile:** Update your info anytime with the Edit button in your private panel.
           `.trim(),
           inline: false 
         },
         {
-          name: '🌐 Web Dashboard',
-          value: `Access your detailed duty logs and statistics at: ${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/duty-logs`,
+          name: 'Privacy Notice',
+          value: '✅ All your duty actions and status are private. Only you can see your details.',
           inline: false
         }
       ])
       .setFooter({ 
-        text: `MAYAAALOKAM RP • Duty Log System v2.0`, 
+        text: `MAYAAALOKAM RP • Personal Duty System`, 
         iconURL: process.env.MAYAALOKAM_LOGO_URL || 'http://localhost:3000/images/mayaalokam-logo.png'
       })
       .setTimestamp()
@@ -97,7 +91,7 @@ View your detailed duty statistics and history on the web dashboard.
           .setEmoji('🔴'),
         new ButtonBuilder()
           .setCustomId('duty_status')
-          .setLabel('Refresh Status')
+          .setLabel('My Status')
           .setStyle(ButtonStyle.Primary)
           .setEmoji('🔄')
       )

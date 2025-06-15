@@ -20,7 +20,11 @@
     "postinstall": "npm run bot:build",
     "test": "npm run lint",
     "deploy:check": "node deploy.js",
-    "prepare": "npm run bot:build"
+    "prepare": "npm run bot:build",
+    "render:build": "npm ci && npm run build",
+    "render:start": "npm start",
+    "diagnostic": "node backend/diagnostic.js",
+    "oauth-diagnostic": "node backend/discord-oauth-diagnostic.js"
   },
   "dependencies": {
     "@react-three/drei": "^9.109.2",
