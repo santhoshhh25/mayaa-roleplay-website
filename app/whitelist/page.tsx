@@ -194,21 +194,22 @@ const WhitelistPage = () => {
       throw new Error(`Please wait ${remainingTime} more minutes before submitting another application.`)
     }
     
-    // Attempt limiting: Max 3 attempts per hour
+    // Attempt limiting: Max 3 attempts per 5 minutes
     const storedAttempts = localStorage.getItem('whitelistAttempts')
     const storedTime = localStorage.getItem('whitelistAttemptsTime')
     
     if (storedAttempts && storedTime) {
       const attempts = parseInt(storedAttempts)
       const time = parseInt(storedTime)
-      const hoursSinceFirstAttempt = (now - time) / (1000 * 60 * 60)
+      const minutesSinceFirstAttempt = (now - time) / (1000 * 60)
       
-      if (hoursSinceFirstAttempt < 1 && attempts >= 3) {
-        throw new Error('Too many submission attempts. Please wait 1 hour before trying again.')
+      if (minutesSinceFirstAttempt < 5 && attempts >= 3) {
+        const remainingTime = Math.ceil(5 - minutesSinceFirstAttempt)
+        throw new Error(`Too many submission attempts. Please wait ${remainingTime} more minutes before trying again.`)
       }
       
-      if (hoursSinceFirstAttempt >= 1) {
-        // Reset attempts after 1 hour
+      if (minutesSinceFirstAttempt >= 5) {
+        // Reset attempts after 5 minutes
         localStorage.setItem('whitelistAttempts', '1')
         localStorage.setItem('whitelistAttemptsTime', now.toString())
       } else {
