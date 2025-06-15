@@ -93,7 +93,7 @@ export async function GET() {
       status: frontendResponseTime > 3000 ? 'degraded' as const : 'healthy' as const,
       uptime: process.uptime(),
       responseTime: frontendResponseTime,
-      url: process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'
+      url: process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : process.env.NEXT_PUBLIC_FRONTEND_URL || 'https://mayaaalokam-frontend.onrender.com'
     }
     
     // Determine overall status
