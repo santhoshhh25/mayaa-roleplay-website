@@ -149,56 +149,14 @@ const WhitelistPage = () => {
   const validateName = (name: string, fieldName: string) => {
     if (!name) return `${fieldName} is required`
     
-    // Check length
+    // Check minimum length only
     if (name.length < 2) return `${fieldName} must be at least 2 characters`
-    if (name.length > 50) return `${fieldName} must be less than 50 characters`
-    
-    // Check for blocked words
-    const blockedWordsFound = containsBlockedWords(name)
-    if (blockedWordsFound.length > 0) {
-      return `${fieldName} contains inappropriate content. Please choose a different name.`
-    }
-    
-    // Check for excessive numbers
-    const numberCount = (name.match(/\d/g) || []).length
-    if (numberCount / name.length > 0.5) {
-      return `${fieldName} cannot contain mostly numbers`
-    }
-    
-    // Check for valid characters (letters, numbers, spaces, hyphens, apostrophes)
-    if (!/^[a-zA-Z0-9\s\-']+$/.test(name)) {
-      return `${fieldName} can only contain letters, numbers, spaces, hyphens, and apostrophes`
-    }
-    
-    // Check for minimum letters
-    if (!/[a-zA-Z].*[a-zA-Z]/.test(name)) {
-      return `${fieldName} must contain at least 2 letters`
-    }
     
     return true
   }
 
   // Real-time validation function with visual feedback
   const validateFieldRealTime = (fieldName: keyof WhitelistFormData, value: string) => {
-    // Immediate validation for blocked words (for name fields)
-    if ((fieldName === 'fullName' || fieldName === 'characterName') && value) {
-      const blockedWords = containsBlockedWords(value)
-      if (blockedWords.length > 0) {
-        // Force immediate error display for blocked words
-        setTimeout(() => trigger(fieldName), 10)
-        return
-      }
-    }
-    
-    // Immediate validation for text content (for textarea fields)
-    if ((fieldName === 'characterBackground' || fieldName === 'rpExperience' || fieldName === 'expectation') && value) {
-      const blockedWords = containsBlockedWords(value)
-      if (blockedWords.length > 0) {
-        setTimeout(() => trigger(fieldName), 10)
-        return
-      }
-    }
-    
     setTimeout(() => {
       trigger(fieldName)
     }, 100) // Small delay to prevent excessive validation calls
@@ -298,35 +256,19 @@ const WhitelistPage = () => {
       errors.push('Age must be between 16 and 99')
     }
     
-    // Check character background for inappropriate content
+    // Check character background word count
     if (data.characterBackground) {
-      const blockedWordsInBackground = containsBlockedWords(data.characterBackground)
-      if (blockedWordsInBackground.length > 0) {
-        errors.push('Character background contains inappropriate content')
-      }
-      
-      if (data.characterBackground.length < 50) {
-        errors.push('Character background must be at least 50 characters')
-      }
-      
-      if (data.characterBackground.length > 1000) {
-        errors.push('Character background must be less than 1000 characters')
+      const wordCount = countWords(data.characterBackground)
+      if (wordCount < 50) {
+        errors.push('Character background must be at least 50 words')
       }
     }
     
-    // Check RP experience for inappropriate content if provided
-    if (data.rpExperience) {
-      const blockedWordsInRP = containsBlockedWords(data.rpExperience)
-      if (blockedWordsInRP.length > 0) {
-        errors.push('RP experience contains inappropriate content')
-      }
-    }
-    
-    // Check expectations for inappropriate content
+    // Check expectations word count
     if (data.expectation) {
-      const blockedWordsInExpectation = containsBlockedWords(data.expectation)
-      if (blockedWordsInExpectation.length > 0) {
-        errors.push('Expectations contain inappropriate content')
+      const wordCount = countWords(data.expectation)
+      if (wordCount < 20) {
+        errors.push('Expectations must be at least 20 words')
       }
     }
     
@@ -1206,22 +1148,13 @@ const WhitelistPage = () => {
                             placeholder="Describe your previous roleplay experience, servers you've played on, favorite character types, etc..."
                             {...register('rpExperience', isNewToRP === 'No' ? { 
                               required: 'Please describe your RP experience',
-                              minLength: { value: 30, message: 'Description must be at least 30 characters' },
-                              validate: (value) => {
-                                if (value) {
-                                  const blockedWords = containsBlockedWords(value)
-                                  if (blockedWords.length > 0) {
-                                    return 'RP experience contains inappropriate content. Please revise.'
-                                  }
-                                }
-                                return true
-                              }
+                              minLength: { value: 10, message: 'Description must be at least 10 characters' }
                             } : {})}
                             onChange={handleTextareaInput('rpExperience')}
                           />
                           
                           {/* RP Experience validation indicator */}
-                          {watchedFields.rpExperience && !errors.rpExperience && watchedFields.rpExperience.length >= 30 && (
+                          {watchedFields.rpExperience && !errors.rpExperience && watchedFields.rpExperience.length >= 10 && (
                             <div className="absolute top-3 right-4">
                               <div className="w-3 h-3 bg-green-400 rounded-full shadow-lg shadow-green-400/50"></div>
                             </div>
