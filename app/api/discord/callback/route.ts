@@ -9,8 +9,9 @@ export async function GET(request: NextRequest) {
     const code = searchParams.get('code')
     const error = searchParams.get('error')
 
-    // Force production URL for redirects
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://mayaaalokam-frontend.onrender.com'
+    // Use the request URL to determine the correct base URL for redirects
+    const url = new URL(request.url)
+    const baseUrl = `${url.protocol}//${url.host}`
     
     console.log('Discord callback - request.url:', request.url)
     console.log('Discord callback - baseUrl:', baseUrl)
@@ -25,14 +26,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/duty-logs?error=missing_code', baseUrl))
     }
 
-    // Redirect to the frontend with the code using explicit production URL
+    // Redirect to the frontend with the code using the same domain
     const redirectUrl = new URL(`/duty-logs?code=${code}`, baseUrl)
     console.log('Discord callback - redirecting to:', redirectUrl.toString())
     return NextResponse.redirect(redirectUrl)
 
   } catch (error) {
     console.error('Discord callback error:', error)
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://mayaaalokam-frontend.onrender.com'
+    const url = new URL(request.url)
+    const baseUrl = `${url.protocol}//${url.host}`
     return NextResponse.redirect(new URL('/duty-logs?error=callback_error', baseUrl))
   }
 }
