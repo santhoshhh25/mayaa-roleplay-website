@@ -139,6 +139,12 @@ const WhitelistPage = () => {
     return Array.from(new Set(foundBlockedWords)) // Remove duplicates
   }
 
+  // Function to count words in text
+  const countWords = (text: string): number => {
+    if (!text) return 0
+    return text.trim().split(/\s+/).filter(word => word.length > 0).length
+  }
+
   // Function to validate names
   const validateName = (name: string, fieldName: string) => {
     if (!name) return `${fieldName} is required`
@@ -1128,13 +1134,11 @@ const WhitelistPage = () => {
                             placeholder="Tell us a detailed story about your character. Their origins, motivations, and personality..."
                             {...register('characterBackground', { 
                               required: 'Character background is required',
-                              minLength: { value: 100, message: 'Background must be at least 100 characters' },
                               validate: (value) => {
-                                if (value) {
-                                  const blockedWords = containsBlockedWords(value)
-                                  if (blockedWords.length > 0) {
-                                    return 'Background contains inappropriate content. Please revise.'
-                                  }
+                                if (!value) return 'Character background is required'
+                                const wordCount = countWords(value)
+                                if (wordCount < 50) {
+                                  return `Background must be at least 50 words (currently ${wordCount} words)`
                                 }
                                 return true
                               }
@@ -1143,7 +1147,7 @@ const WhitelistPage = () => {
                           />
                           
                           {/* Character background validation indicator */}
-                          {watchedFields.characterBackground && !errors.characterBackground && watchedFields.characterBackground.length >= 100 && (
+                          {watchedFields.characterBackground && !errors.characterBackground && countWords(watchedFields.characterBackground) >= 50 && (
                             <div className="absolute top-3 right-4">
                               <div className="w-3 h-3 bg-green-400 rounded-full shadow-lg shadow-green-400/50"></div>
                             </div>
@@ -1253,13 +1257,11 @@ const WhitelistPage = () => {
                           placeholder="e.g., Serious RP, making friends, exploring the city, business RP, police/criminal RP..."
                           {...register('expectation', { 
                             required: 'Please tell us what you expect',
-                            minLength: { value: 20, message: 'Response must be at least 20 characters' },
                             validate: (value) => {
-                              if (value) {
-                                const blockedWords = containsBlockedWords(value)
-                                if (blockedWords.length > 0) {
-                                  return 'Expectations contain inappropriate content. Please revise.'
-                                }
+                              if (!value) return 'Please tell us what you expect'
+                              const wordCount = countWords(value)
+                              if (wordCount < 20) {
+                                return `Response must be at least 20 words (currently ${wordCount} words)`
                               }
                               return true
                             }
@@ -1268,7 +1270,7 @@ const WhitelistPage = () => {
                           />
                           
                           {/* Expectation validation indicator */}
-                          {watchedFields.expectation && !errors.expectation && watchedFields.expectation.length >= 20 && (
+                          {watchedFields.expectation && !errors.expectation && countWords(watchedFields.expectation) >= 20 && (
                             <div className="absolute top-3 right-4">
                               <div className="w-3 h-3 bg-green-400 rounded-full shadow-lg shadow-green-400/50"></div>
                             </div>
