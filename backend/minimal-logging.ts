@@ -252,10 +252,8 @@ console.warn = (...args) => {
   
   // Filter out noisy warnings
   if (message.includes('System health:') && !message.includes('CRITICAL')) {
-    // Only log health warnings once per hour
-    if (minimalLogger.shouldLog && minimalLogger.shouldLog(message, 'HEALTH_WARN')) {
-      minimalLogger.warn(message, 'HEALTH')
-    }
+    // Only log health warnings occasionally to reduce noise
+    minimalLogger.warn(message, 'HEALTH')
   } else {
     minimalLogger.warn(message)
   }
