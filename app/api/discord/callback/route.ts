@@ -6,23 +6,31 @@ export async function GET(request: NextRequest) {
     const code = searchParams.get('code')
     const error = searchParams.get('error')
 
+    // Force production URL for redirects
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://mayaaalokam-frontend.onrender.com'
+    
+    console.log('Discord callback - request.url:', request.url)
+    console.log('Discord callback - baseUrl:', baseUrl)
+
     if (error) {
       console.error('Discord OAuth error:', error)
-      return NextResponse.redirect(new URL(`/duty-logs?error=${encodeURIComponent(error)}`, request.url))
+      return NextResponse.redirect(new URL(`/duty-logs?error=${encodeURIComponent(error)}`, baseUrl))
     }
 
     if (!code) {
       console.error('No code parameter provided')
-      return NextResponse.redirect(new URL('/duty-logs?error=missing_code', request.url))
+      return NextResponse.redirect(new URL('/duty-logs?error=missing_code', baseUrl))
     }
 
-    // Redirect to the frontend with the code
-    // The frontend will handle the token exchange via the oauth endpoint
-    return NextResponse.redirect(new URL(`/duty-logs?code=${code}`, request.url))
+    // Redirect to the frontend with the code using explicit production URL
+    const redirectUrl = new URL(`/duty-logs?code=${code}`, baseUrl)
+    console.log('Discord callback - redirecting to:', redirectUrl.toString())
+    return NextResponse.redirect(redirectUrl)
 
   } catch (error) {
     console.error('Discord callback error:', error)
-    return NextResponse.redirect(new URL('/duty-logs?error=callback_error', request.url))
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://mayaaalokam-frontend.onrender.com'
+    return NextResponse.redirect(new URL('/duty-logs?error=callback_error', baseUrl))
   }
 }
 
