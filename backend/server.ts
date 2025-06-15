@@ -15,7 +15,12 @@ const PORT = process.env.BACKEND_PORT || 3001
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001', 'https://mayaaalokam-frontend.onrender.com', process.env.NEXT_PUBLIC_API_URL || ''].filter(url => url !== ''),
+  origin: [
+    'http://localhost:3000', 
+    'http://localhost:3001', 
+    'https://mayaaalokam-frontend.onrender.com',
+    process.env.NEXT_PUBLIC_API_URL || ''
+  ].filter(url => url !== ''),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -76,11 +81,22 @@ async function initializeBot() {
 
 // Routes
 app.get('/health', (req, res) => {
+  const discordStatus = discordBot ? {
+    connected: discordBot.getClient().isReady(),
+    uptime: discordBot.getClient().uptime,
+    guilds: discordBot.getClient().guilds.cache.size
+  } : null
+
   res.json({ 
     status: 'ok', 
     message: 'MAYAAALOKAM Whitelist API is running',
     botStatus: discordBot ? 'connected' : 'disconnected',
-    timestamp: new Date().toISOString()
+    discord: discordStatus,
+    timestamp: new Date().toISOString(),
+    services: {
+      api: 'operational',
+      discord: discordBot && discordBot.getClient().isReady() ? 'operational' : 'unavailable'
+    }
   })
 })
 
@@ -222,10 +238,23 @@ app.post('/api/whitelist/submit', async (req, res) => {
 
     // Check if Discord bot is available
     if (!discordBot) {
-      console.error('❌ Discord bot not initialized')
+      console.error('❌ Discord bot not initialized - service unavailable')
       return res.status(503).json({
         success: false,
-        error: 'Discord bot service unavailable'
+        error: 'Discord bot service unavailable',
+        message: 'The Discord bot service is currently unavailable. Please try again in a few minutes.',
+        details: 'This usually happens when the Discord bot is starting up or experiencing connectivity issues.'
+      })
+    }
+
+    // Check if Discord bot is connected
+    if (!discordBot.getClient().isReady()) {
+      console.error('❌ Discord bot not ready - attempting to reconnect')
+      return res.status(503).json({
+        success: false,
+        error: 'Discord bot service unavailable',
+        message: 'The Discord bot is currently connecting. Please try again in a few minutes.',
+        details: 'The bot service is starting up and should be available shortly.'
       })
     }
 
@@ -236,7 +265,9 @@ app.post('/api/whitelist/submit', async (req, res) => {
       console.error('❌ Failed to post application to Discord')
       return res.status(500).json({
         success: false,
-        error: 'Failed to post application to Discord'
+        error: 'Failed to post application to Discord',
+        message: 'Your application could not be submitted to Discord. Please try again.',
+        details: 'This may be due to Discord API issues or channel configuration problems.'
       })
     }
 
@@ -326,4 +357,4 @@ process.on('SIGTERM', () => {
 })
 
 // Start the application
-startServer() 
+startServer()

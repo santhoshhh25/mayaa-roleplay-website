@@ -8,10 +8,11 @@ export async function POST(request: NextRequest) {
     // Get the request body
     const body = await request.json()
     
-    // Forward the request to the backend
-    const backendUrl = `http://localhost:3001/api/whitelist/submit`
+    // Use environment variable for backend URL, fallback to localhost for development
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+    const submitUrl = `${backendUrl}/api/whitelist/submit`
     
-    const response = await fetch(backendUrl, {
+    const response = await fetch(submitUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

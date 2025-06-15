@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
@@ -121,50 +121,38 @@ function checkMemoryHealth(): { status: string; usage?: number; limit?: number; 
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    // Check if we can reach the backend health endpoint
+    // Use environment variable for backend URL, fallback to localhost for development
     const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+    const healthUrl = `${backendUrl}/health`
     
-    let backendStatus = 'unknown'
-    try {
-      // Use AbortController for timeout
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000)
-      
-      const backendResponse = await fetch(`${backendUrl}/health`, {
-        method: 'GET',
-        signal: controller.signal
-      })
-      
-      clearTimeout(timeoutId)
-      
-      if (backendResponse.ok) {
-        const backendData = await backendResponse.json()
-        backendStatus = backendData.botStatus || 'connected'
-      } else {
-        backendStatus = 'disconnected'
+    const response = await fetch(healthUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
       }
-    } catch (error) {
-      backendStatus = 'disconnected'
-    }
-
-    return NextResponse.json({
-      status: 'ok',
-      message: 'MAYAAALOKAM Frontend is running',
-      frontend: 'healthy',
-      backend: backendStatus,
-      timestamp: new Date().toISOString()
     })
+    
+    const data = await response.json()
+    
+    // Return the backend response with the same status code
+    return NextResponse.json(data, { status: response.status })
+    
   } catch (error) {
+    console.error('❌ Error checking backend health:', error)
+    
     return NextResponse.json(
       {
         status: 'error',
-        message: 'Health check failed',
-        error: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString()
+        message: 'Unable to reach backend service',
+        services: {
+          api: 'unavailable',
+          discord: 'unknown'
+        },
+        details: error instanceof Error ? error.message : 'Unknown error'
       },
-      { status: 500 }
+      { status: 503 }
     )
   }
 } 

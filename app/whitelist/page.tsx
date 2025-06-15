@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { 
@@ -58,6 +58,12 @@ const WhitelistPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [lastSubmitTime, setLastSubmitTime] = useState(0)
   const [submitAttempts, setSubmitAttempts] = useState(0)
+  const [serviceStatus, setServiceStatus] = useState<{
+    api: string
+    discord: string
+    lastChecked?: Date
+  } | null>(null)
+  const [showServiceWarning, setShowServiceWarning] = useState(false)
   const totalSteps = 3
 
   const { register, handleSubmit, formState: { errors }, reset, trigger, getValues, watch, setValue } = useForm<WhitelistFormData>({
@@ -329,6 +335,20 @@ const WhitelistPage = () => {
 
   const validateAndSubmit = async (data: WhitelistFormData) => {
     try {
+      // Check service status before submission
+      if (serviceStatus?.discord === 'unavailable') {
+        const userConfirmed = confirm(
+          '⚠️ Discord Service Unavailable\n\n' +
+          'Our Discord bot is currently unavailable, which means your application may not be processed immediately. ' +
+          'You can still submit your application, and it will be processed once the service is restored.\n\n' +
+          'Do you want to proceed with the submission?'
+        )
+        
+        if (!userConfirmed) {
+          return
+        }
+      }
+      
       // Check spam protection first
       checkSpamProtection()
       
@@ -377,8 +397,7 @@ const WhitelistPage = () => {
       
       try {
         // Submit to Discord bot via API
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
-        const response = await fetch(`${apiUrl}/api/whitelist/submit`, {
+        const response = await fetch('/api/whitelist/submit', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -413,14 +432,20 @@ const WhitelistPage = () => {
         if (error instanceof TypeError && error.message.includes('fetch')) {
           alert('🔌 Connection Error: Unable to reach the server. Please check your internet connection and try again.')
         } else if (error instanceof Error) {
-          if (error.message.includes('429')) {
+          const errorMessage = error.message.toLowerCase()
+          
+          if (errorMessage.includes('discord bot service unavailable')) {
+            alert('🤖 Discord Service Unavailable\n\nOur Discord bot is currently starting up or experiencing connectivity issues. This is usually temporary.\n\nPlease try again in 2-3 minutes. If the issue persists, contact our support team.')
+          } else if (errorMessage.includes('429') || errorMessage.includes('rate limit')) {
             alert('⏱️ Rate Limited: Please wait 5 minutes before submitting another application.')
-          } else if (error.message.includes('400')) {
+          } else if (errorMessage.includes('400') || errorMessage.includes('validation')) {
             alert('📝 Invalid Data: Please check all fields and ensure your information is correct.')
-          } else if (error.message.includes('500')) {
-            alert('🔧 Server Error: Our Discord bot may be temporarily unavailable. Please try again in a few minutes.')
+          } else if (errorMessage.includes('500') || errorMessage.includes('internal server error')) {
+            alert('🔧 Server Error: Our services may be temporarily unavailable. Please try again in a few minutes.')
+          } else if (errorMessage.includes('failed to post application to discord')) {
+            alert('📡 Discord Integration Error\n\nWe couldn\'t send your application to Discord. This might be due to:\n• Discord API issues\n• Channel configuration problems\n\nPlease try again in a few minutes.')
           } else {
-            alert(`❌ Submission Failed: ${error.message}\n\nPlease verify your information and try again.`)
+            alert(`❌ Submission Failed: ${error.message}\n\nPlease verify your information and try again. If the problem persists, contact support.`)
           }
         } else {
           alert('❌ Unexpected Error: Something went wrong. Please refresh the page and try again.')
@@ -455,6 +480,45 @@ const WhitelistPage = () => {
     'UTC+04:00', 'UTC+05:00', 'UTC+05:30 (IST)', 'UTC+06:00', 'UTC+07:00', 'UTC+08:00', 'UTC+09:00', 'UTC+10:00',
     'UTC+11:00', 'UTC+12:00'
   ]
+
+  // Check service status on component mount and periodically
+  useEffect(() => {
+    const checkServiceStatus = async () => {
+      try {
+        const response = await fetch('/api/health')
+        const data = await response.json()
+        
+        setServiceStatus({
+          api: data.services?.api || 'unknown',
+          discord: data.services?.discord || 'unknown',
+          lastChecked: new Date()
+        })
+        
+        // Show warning if Discord service is unavailable
+        if (data.services?.discord !== 'operational') {
+          setShowServiceWarning(true)
+        } else {
+          setShowServiceWarning(false)
+        }
+      } catch (error) {
+        console.warn('Could not check service status:', error)
+        setServiceStatus({
+          api: 'unknown',
+          discord: 'unknown',
+          lastChecked: new Date()
+        })
+        setShowServiceWarning(true)
+      }
+    }
+
+    // Check immediately
+    checkServiceStatus()
+    
+    // Check every 30 seconds
+    const interval = setInterval(checkServiceStatus, 30000)
+    
+    return () => clearInterval(interval)
+  }, [])
 
   if (isSubmitted) {
     return (
@@ -720,6 +784,37 @@ const WhitelistPage = () => {
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 rounded-2xl sm:rounded-3xl" />
               <div className="absolute top-0 right-0 w-32 h-32 sm:w-64 sm:h-64 bg-primary/10 rounded-full blur-3xl -translate-y-16 sm:-translate-y-32 translate-x-16 sm:translate-x-32" />
               <div className="absolute bottom-0 left-0 w-24 h-24 sm:w-48 sm:h-48 bg-accent/10 rounded-full blur-3xl translate-y-12 sm:translate-y-24 -translate-x-12 sm:-translate-x-24" />
+              
+              {/* Service Status Warning */}
+              {showServiceWarning && (
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="relative z-20 mb-6 p-4 bg-gradient-to-r from-yellow-900/50 to-orange-900/50 border border-yellow-500/30 rounded-xl backdrop-blur-sm"
+                >
+                  <div className="flex items-start space-x-3">
+                    <div className="flex-shrink-0 w-6 h-6 bg-yellow-500/20 rounded-full flex items-center justify-center mt-0.5">
+                      <span className="text-yellow-400 text-sm">⚠️</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-yellow-400 font-semibold text-sm mb-1">
+                        Discord Service Status
+                      </h4>
+                      <p className="text-yellow-300/90 text-sm leading-relaxed">
+                        {serviceStatus?.discord === 'unavailable' 
+                          ? 'Our Discord bot is currently starting up or experiencing connectivity issues. You can still fill out the form, but submission may be temporarily unavailable.'
+                          : 'We\'re experiencing some connectivity issues. Your application may not submit immediately.'
+                        }
+                      </p>
+                      {serviceStatus?.lastChecked && (
+                        <p className="text-yellow-400/70 text-xs mt-2">
+                          Last checked: {serviceStatus.lastChecked.toLocaleTimeString()}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
               
               {/* Content with relative positioning */}
               <div className="relative z-10">
